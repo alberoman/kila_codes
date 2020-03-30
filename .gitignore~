@@ -1,0 +1,19 @@
+# ignore files
+**.DS_Store
+**__pycache__
+tilt/movie
+inversion/sar/results
+*.nc
+*.png
+*.pickle
+*.h5
+*.csv
+data/sar/S1-GUNW-D-R-087-tops-20180728_20180704-161543-20480N_18471N-PP.nc
+inversion/dynamical_model/SDH
+inversion/dynamical_model/UWD
+model/2chambers/movie/
+model/2chambers/upper_feeder/movie/
+model/2chambers/lower_feeder/movie/
+inversion/dynamical_model/2chambers/samples.pickle
+movies/
+
