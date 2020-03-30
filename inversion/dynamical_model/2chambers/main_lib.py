@@ -74,7 +74,7 @@ def TwoChambers_LF_timein(w0,par,pslip,tslip,time,ps,pd,t_x,x_data,N):
 
 
 def DirectModelEmcee_inv(tOrigTilt,tOrigGPS,
-                         offx,offy,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
+                         offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                          VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                          Xst,Yst,
                          ls,ld,pt,mu,
@@ -148,9 +148,73 @@ def DirectModelEmcee_inv(tOrigTilt,tOrigGPS,
     tOrigTilt = tOrigTilt / tstar
     tOrigGPS = tOrigGPS * tstar
     for i in range((np.max(nstation) + 1)):
-        txMod[nstation == i] = txMod[nstation == i] + offx[i]*1e-6
-        tyMod[nstation == i] = tyMod[nstation == i] + offy[i]*1e-6
-    gpsMod = gpsMod 
+        txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]*1e-6
+        tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]*1e-6
+    gpsMod = gpsMod  + offGPSSamp
     return txMod,tyMod,gpsMod#,dtxMod, dtyMod
 
+
+def log_likelihood(param,
+                   xstation,ystation,
+                   ls,ld,pt,mu,
+                   rhog,const,S,
+                   tTilt,tGPS,txObs,tyObs,GPSObs,
+                   tiltErr,GPSErr,dtxObs,dtyObs,dtiltErr,nstation):
+    #offtimeSamp,
+    offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = param
+    offxSamp = np.array([offx1])
+    offySamp = np.array([offy1])
+    txMod,tyMod,GPSMod = DirectModelEmcee_inv(tTilt,tGPS,
+                                              offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
+                                              VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
+                                              xstation,ystation,
+                                              ls,ld,pt,mu,
+                                              rhog,const,S,nstation)
+    sigma2Tilt = tiltErr ** 2
+    sigma2dTilt = dtiltErr ** 2
+    sigma2GPS = GPSErr ** 2
+    liketx = -0.5 * np.sum((txObs - txMod) ** 2 / sigma2Tilt,0)  -len(txObs)/ 2 * np.log(6.28 * sigma2Tilt**2)  
+    likety = -0.5 * np.sum((tyObs - tyMod) ** 2 / sigma2Tilt,0)  -len(tyObs)/ 2 * np.log(6.28 * sigma2Tilt**2)
+    #likedtx = -0.5 * np.sum((dtxObs - dtxMod) ** 2 / sigma2dTilt,0)  -len(dtxObs)/ 2 * np.log(6.28 * sigma2dTilt**2)  
+    #likedty = -0.5 * np.sum((dtyObs - dtyMod) ** 2 / sigma2dTilt,0)  -len(dtyObs)/ 2 * np.log(6.28 * sigma2dTilt**2)
+    liketilt =  + liketx + likety 
+    likeGPS = -0.5 * np.sum((GPSObs - GPSMod) ** 2 / sigma2GPS) -len(GPSObs)/ 2 * np.log(6.28 * sigma2GPS**2)
+     
+    return liketilt + likeGPS
+
+def log_prior(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTr,locEr,Nobs):
+   #offtimeSamp,
+   offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = param
+   kSamp = 10**kExpSamp
+   R5Samp = 10**R5ExpSamp
+   VsSamp= 10**VsExpSamp
+   VdSamp = 10**VdExpSamp
+   R1Samp = rhog * VdSamp /(kSamp*S)
+   offs = np.array([offx1,offy1,])
    
+   if bounds[0,0] < VsExpSamp < bounds[0,1] and bounds[1,0] < VdExpSamp < bounds[1,1] and bounds[2,0] < kExpSamp < bounds[2,1] and bounds[3,0] < R5ExpSamp < bounds[3,1] and 2* R1Samp* (Nobs -5) * (1 - R5Samp) / (R1Samp +1) +1   < R3Samp < 2* R1Samp* (Nobs + 30) * (1 - R5Samp) / (R1Samp +1) +1 and bounds[5,0] < condsSamp < bounds[5,1] and bounds[6,0] < conddSamp < bounds[6,1] and all(np.abs(offs)<3e+3) and -bndGPSconst < offGPSSamp < 0 :    # and 0 < offtimeSamp < bndtimeconst and                          
+       logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
+       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
+       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[2]))-0.5*(dsSamp-locTr[2])**2/locEr[2]**2
+       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[3]))-0.5*(xdSamp-locTr[3])**2/locEr[3]**2
+       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[4]))-0.5*(ydSamp-locTr[4])**2/locEr[4]**2
+       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[5]))-0.5*(ddSamp-locTr[5])**2/locEr[5]**2
+       return logprob
+   return -np.inf
+
+def log_probability(param,
+                    xstation,ystation,
+                    ls,ld,pt,mu,
+                    rhog,const,S,
+                    tTilt,tGPS,tx,ty,GPS,
+                    tiltErr,GPSErr,bounds,bndtimeconst,bndGPSconst,Nmax,dtx,dty,dtiltErr,locTruth,locErr,nstation):
+    
+    lp = log_prior(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTruth,locErr,Nmax)
+    if not np.isfinite(lp):
+        return -np.inf
+    return lp + log_likelihood(param,
+                               xstation,ystation,
+                               ls,ld,pt,mu,
+                               rhog,const,S,
+                               tTilt,tGPS,tx,ty,GPS,
+                               tiltErr,GPSErr,dtx,dty,dtiltErr,nstation)   

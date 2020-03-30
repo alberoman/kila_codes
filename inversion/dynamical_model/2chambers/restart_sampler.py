@@ -5,8 +5,12 @@ Created on Sun Mar 29 09:07:05 2020
 
 @author: aroman
 """
-
+import numpy as np
 import emcee
+import pickle
+from multiprocessing import Pool
+from main_lib import *
+
 np.random.seed(1234)
 bndtiltconst = 3000
 bndGPSconst = 20
@@ -29,6 +33,7 @@ const = -9. /(4 * 3.14) * (1 - poisson) / lame
 tiltErr = 1e-5
 GPSErr = 1e-2
 nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr = pickle.load(open('TiltandGPS_SDH.pickle','rb'))
+
 Nst = 1 + np.max(nstation)
 tx = - tx
 ty =  -ty
@@ -39,9 +44,9 @@ dtiltErr = 0
 
 Nmax = 40
 bounds = np.array([[+9,+11],[+7,+10],[+8,+11],[-2,0],[1.1,10],[1,10],[1,10]]) 
-filename = "progress_SDH.h5"
+filename = "progress_UWD.h5"
 backend = emcee.backends.HDFBackend(filename)
-
+nwalkers,ndim = backend.shape
 with Pool() as pool:
     sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability,
                                     args=(x,y,
@@ -49,7 +54,7 @@ with Pool() as pool:
                                         rhog,const,S,
                                         tTilt,tGPS,tx,ty,GPS,
                                         tiltErr,GPSErr,bounds,bndtimeconst,bndGPSconst,Nmax,dtx,dty,dtiltErr,locTruth,locErr,nstation), backend = backend, pool = pool)
-    sampler.run_mcmc(None, 125000,progress=True)
+    sampler.run_mcmc(None, 10,progress=True)
     
 samples = sampler.get_chain(thin =16)
 samplesFlat = sampler.get_chain(flat = True,thin = 16)
@@ -59,7 +64,7 @@ Obs['ty'] =  ty
 Obs['GPS'] =  GPS
 fix_par = np.array([x,y,ls,ld,pt,mu,rhog,const,S])
 
-with open('results_UWD_cont.pickle','wb') as filen:
+with open('results_SDH_cont.pickle','wb') as filen:
     pickle.dump((tTilt,tGPS,Obs,samples,samplesFlat,fix_par,Nmax),filen)
-#
+
 

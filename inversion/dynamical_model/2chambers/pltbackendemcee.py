@@ -29,7 +29,7 @@ def plotter(samples,pathfigs):
     poisson = 0.25
     lame = 1e+9
     #Cylinder parameters
-    Rcyl = 1.0e+e
+    Rcyl = 1.0e+7
     S = 3.14 * Rcyl**2 
     const = -9. /(4 * 3.14) * (1 - poisson) / lame
     
@@ -50,9 +50,8 @@ def plotter(samples,pathfigs):
     plt.savefig(pathfigs +'model.png')
 
 pathfigs = 'figs_UWD/' 
-filename = "progress_UWD.h5"
+filename = "progress_SDH.h5"
 reader = emcee.backends.HDFBackend(filename)
-#tau = reader.get_autocogrr_time()
 samples = reader.get_chain(thin =10)
 samplesFlat = reader.get_chain(flat = True,thin = 10)
 ndim =  np.shape(samples)[2]

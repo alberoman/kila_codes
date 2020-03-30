@@ -43,7 +43,7 @@ def format_gps(A):
 
 stations = pickle.load(open('../../../tilt/tilt_dictionary_01may.pickle','rb')) 
 t0 = 736861.85 # This is night of 06/16/2018
-list_station = ['SDH',]  #Select station to plot
+list_station = ['UWD','SDH']  #Select station to plot
 
 #day_beginning = '2018-07-10' #Few cycles
 #day_end = '2018-07-20'
@@ -70,8 +70,10 @@ for name in list_station:
     east = east[::1]
     axx = fig.add_subplot(211)
     axx.plot(time,north)
+    axx.set_xlabel('north ' + name)
     axy = fig.add_subplot(212)
     axy.plot(time,east)
+    axy.set_ylabel('east ' + name)
 
 ref_point = np.array([-155.274,19.395]) #Cordinate of CRIM station
 dg2rd = np.pi / 180
@@ -115,9 +117,13 @@ for name in list_station:
     nstation.append(i * np.ones(len(east)))
     axx = fig.add_subplot(211)
     axx.plot(time,north)
+
     axy = fig.add_subplot(212)
     axy.plot(time,east)
     i = i + 1
+axx.set_ylabel('north')
+axy.set_ylabel('east')
+
 x = np.array(x)
 x = np.concatenate(x)
 
@@ -181,6 +187,7 @@ ydeErr = panda_trace.std()['ySource1']
 
 locTruth =np.array([xsh,ysh,dsh,xde,yde,dde])
 locErr =np.array([xshErr,yshErr,dshErr,xdeErr,ydeErr,ddeErr])
-
-pickle.dump([nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr],open('TiltandGPS_SDH.pickle','wb'))
-plt.close('all')
+plt.figure()
+plt.plot(x,y,'o')
+plt.plot(xsh,ysh,'x',xde,yde,'x')
+#pickle.dump([nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr],open('TiltandGPS_SDH.pickle','wb'))

@@ -16,7 +16,7 @@ rhog = rho * g
 Rcyl = 6.0e+2
 S = 3.14 * Rcyl**2 
 def plotter(samples,tTilt,tGPS,Obs,fix_par,Nobs,pathfigs):
-    nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr = pickle.load(open('TiltandGPS_SDH.pickle','rb'))
+    nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr = pickle.load(open('TiltandGPS_UWD.pickle','rb'))
     tx = -tx
     ty = -ty
     GPS = -GPS
@@ -25,12 +25,12 @@ def plotter(samples,tTilt,tGPS,Obs,fix_par,Nobs,pathfigs):
     plt.figure(3)
     for parameters in samples[np.random.randint(len(samples), size = 20)]:
         #offtimeSamp,offGPSSamp,
-        offx1,offy1,xsh,ysh,dsh,xde,yde,dde,Vs_exp,Vd_exp,k_exp,R5exp,R3,conds,condd = parameters
+        offGPS,offx1,offy1,xsh,ysh,dsh,xde,yde,dde,Vs_exp,Vd_exp,k_exp,R5exp,R3,conds,condd = parameters
         offx = np.array([offx1,])
         offy = np.array([offy1,])
         x,y,ls,ld,pt,mu,rhog,const,S = fix_par
         txMod,tyMod,GPSMod = DirectModelEmcee_inv(tTilt,tGPS,
-                        offx,offy,xsh,ysh,dsh,xde,yde,dde,
+                        offGPS,offx,offy,xsh,ysh,dsh,xde,yde,dde,
                         Vs_exp,Vd_exp,k_exp,R5exp,R3,conds,condd,
                         x,y,
                         ls,ld,pt,mu,
@@ -52,25 +52,25 @@ def plotter(samples,tTilt,tGPS,Obs,fix_par,Nobs,pathfigs):
     plt.plot(tGPS,GPS)
     plt.savefig(pathfigs +'GPS.png')
 
-pathfigs = 'figs_SDH/' 
-with open('results_SDH.pickle','rb') as filen:
+pathfigs = 'figs_UWD_offGPS/' 
+with open('results_UWD_offGPS.pickle','rb') as filen:
     tTilt,tGPS,Obs,samples,samplesFlat,fix_par,Nobs = pickle.load(filen)
 
-#ndim =  np.shape(samples)[2]
-##
-#fig, axes = plt.subplots(ndim, figsize=(10, 7), sharex=True)
-#for i in range(ndim):
-#    ax = axes[i]
-#    ax.plot(samples[:, :, i], "k", alpha=0.3)
-#    ax.set_xlim(0, len(samples))
-#    ax.yaxis.set_label_coords(-0.1, 0.5)
+ndim =  np.shape(samples)[2]
 #
-#
-#axes[-1].set_xlabel("step number")
-#plt.savefig(pathfigs + 'chains.png')
-#plt.close('all')
-#corner.corner(samplesFlat)
-#plt.savefig(pathfigs +'hist.png')
-#plt.close('all')
+fig, axes = plt.subplots(ndim, figsize=(10, 7), sharex=True)
+for i in range(ndim):
+    ax = axes[i]
+    ax.plot(samples[:, :, i], "k", alpha=0.3)
+    ax.set_xlim(0, len(samples))
+    ax.yaxis.set_label_coords(-0.1, 0.5)
+
+
+axes[-1].set_xlabel("step number")
+plt.savefig(pathfigs + 'chains.png')
+plt.close('all')
+corner.corner(samplesFlat)
+plt.savefig(pathfigs +'hist.png')
+plt.close('all')
 plotter(samplesFlat,tTilt,tGPS,Obs,fix_par,Nobs,pathfigs)
 
