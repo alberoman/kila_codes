@@ -52,25 +52,25 @@ def plotter(samples,tTilt,tGPS,Obs,fix_par,Nobs,pathfigs):
     plt.plot(tGPS,GPS)
     plt.savefig(pathfigs +'GPS.png')
 
-pathfigs = 'figs_UWD_offGPS/' 
+pathfigs = 'figs_UWD_constr/' 
 with open('results_UWD_offGPS.pickle','rb') as filen:
     tTilt,tGPS,Obs,samples,samplesFlat,fix_par,Nobs = pickle.load(filen)
 
 ndim =  np.shape(samples)[2]
 
-#fig, axes = plt.subplots(ndim, figsize=(10, 7), sharex=True)
-#for i in range(ndim):
-#    ax = axes[i]
-#    ax.plot(samples[:, :, i], "k", alpha=0.3)
-#    ax.set_xlim(0, len(samples))
-#    ax.yaxis.set_label_coords(-0.1, 0.5)
-#
-#
-#axes[-1].set_xlabel("step number")
-#plt.savefig(pathfigs + 'chains.png')
-#plt.close('all')
-#corner.corner(samplesFlat)
-#plt.savefig(pathfigs +'hist.png')
-#plt.close('all')
-plotter(samplesFlat,tTilt,tGPS,Obs,fix_par,Nobs,pathfigs)
+fig, axes = plt.subplots(ndim, figsize=(10, 7), sharex=True)
+for i in range(ndim):
+    ax = axes[i]
+    ax.plot(samples[:, :, i], "k", alpha=0.3)
+    ax.set_xlim(0, len(samples))
+    ax.yaxis.set_label_coords(-0.1, 0.5)
+
+
+axes[-1].set_xlabel("step number")
+plt.savefig(pathfigs + 'chains.png')
+plt.close('all')
+corner.corner(samplesFlat)
+plt.savefig(pathfigs +'hist.png')
+plt.close('all')
+#plotter(samplesFlat,tTilt,tGPS,Obs,fix_par,Nobs,pathfigs)
 

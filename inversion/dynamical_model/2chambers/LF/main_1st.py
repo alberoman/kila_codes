@@ -38,7 +38,7 @@ lame = 1e+9
 Rcyl = 1.0e+3
 S = 3.14 * Rcyl**2 
 const = -9. /(4 * 3.14) * (1 - poisson) / lame
-tiltErr = 1e-5
+tiltErr = 1e-6
 GPSErr = 1e-2
 
 nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr = pickle.load(open('TiltandGPS_UWD.pickle','rb'))
@@ -81,7 +81,7 @@ offt = np.random.uniform(low = 0,high = bndtimeconst,size = (nwalkers,1))
 pos = np.concatenate((offt,pos),axis = 1 )
 
 nwalkers, ndim = pos.shape
-filename = "progress_UWD_offtime.h5"
+filename = "progress_UWD_constr.h5"
 backend = emcee.backends.HDFBackend(filename)
 
 with Pool() as pool:
@@ -104,6 +104,6 @@ Obs['ty'] =  ty
 Obs['GPS'] =  GPS
 fix_par = np.array([x,y,ls,ld,pt,mu,rhog,const,S])
 
-with open('results_UWD_offtime.pickle','wb') as filen:
+with open('results_UWD_constr.pickle','wb') as filen:
     pickle.dump((tTilt,tGPS,Obs,samples,samplesFlat,fix_par,Nmax),filen)
 #

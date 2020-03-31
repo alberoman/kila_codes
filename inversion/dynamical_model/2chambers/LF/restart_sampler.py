@@ -44,7 +44,7 @@ dtiltErr = 0
 
 Nmax = 40
 bounds = np.array([[+9,+11],[+7,+10],[+8,+11],[-2,0],[1.1,10],[1,10],[1,10]]) 
-filename = "progress_UWD_offtime.h5"
+filename = "progress_UWD_constr.h5"
 backend = emcee.backends.HDFBackend(filename)
 nwalkers,ndim = backend.shape
 with Pool() as pool:
@@ -54,17 +54,17 @@ with Pool() as pool:
                                         rhog,const,S,
                                         tTilt,tGPS,tx,ty,GPS,
                                         tiltErr,GPSErr,bounds,bndtimeconst,bndGPSconst,Nmax,dtx,dty,dtiltErr,locTruth,locErr,nstation), backend = backend, pool = pool)
-    sampler.run_mcmc(None, 70000,progress=True)
+    sampler.run_mcmc(None, 500000,progress=True)
     
-samples = sampler.get_chain(thin =5)
-samplesFlat = sampler.get_chain(flat = True,thin = 5)
+samples = sampler.get_chain(thin =30)
+samplesFlat = sampler.get_chain(flat = True,thin = 30)
 Obs = {}
 Obs['tx'] =  tx
 Obs['ty'] =  ty
 Obs['GPS'] =  GPS
 fix_par = np.array([x,y,ls,ld,pt,mu,rhog,const,S])
 
-with open('results_UWD_offtime.pickle','wb') as filen:
+with open('results_UWD_constr.pickle','wb') as filen:
     pickle.dump((tTilt,tGPS,Obs,samples,samplesFlat,fix_par,Nmax),filen)
 
 

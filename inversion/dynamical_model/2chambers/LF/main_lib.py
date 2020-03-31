@@ -181,7 +181,7 @@ def log_likelihood(param,
      
     return liketilt + likeGPS
 
-def log_prior(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTr,locEr,Nobs):
+def log_prior(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTr,locEr,Nobs,pt):
    offtimeSamp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = param
    kSamp = 10**kExpSamp
    R5Samp = 10**R5ExpSamp
@@ -189,8 +189,9 @@ def log_prior(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTr,locEr,Nobs):
    VdSamp = 10**VdExpSamp
    R1Samp = rhog * VdSamp /(kSamp*S)
    offs = np.array([offx1,offy1,])
-   
-   if bounds[0,0] < VsExpSamp < bounds[0,1] and bounds[1,0] < VdExpSamp < bounds[1,1] and bounds[2,0] < kExpSamp < bounds[2,1] and bounds[3,0] < R5ExpSamp < bounds[3,1] and 2* R1Samp* (Nobs -5) * (1 - R5Samp) / (R1Samp +1) +1   < R3Samp < 2* R1Samp* (Nobs + 30) * (1 - R5Samp) / (R1Samp +1) +1 and bounds[5,0] < condsSamp < bounds[5,1] and bounds[6,0] < conddSamp < bounds[6,1] and all(np.abs(offs)<3e+3) and -bndGPSconst < offGPSSamp < 0    and 0 < offtimeSamp < bndtimeconst:                         
+   tausSamp = pt / R3Samp
+   deltax  = 2 * R1Samp / rhog * (1 - R5Samp)  / (1 + R1Samp) * tausSamp
+   if bounds[0,0] < VsExpSamp < bounds[0,1] and bounds[1,0] < VdExpSamp < bounds[1,1] and bounds[2,0] < kExpSamp < bounds[2,1] and bounds[3,0] < R5ExpSamp < bounds[3,1] and 2* R1Samp* (Nobs -5) * (1 - R5Samp) / (R1Samp +1) +1   < R3Samp < 2* R1Samp* (Nobs + 30) * (1 - R5Samp) / (R1Samp +1) +1 and bounds[5,0] < condsSamp < bounds[5,1] and bounds[6,0] < conddSamp < bounds[6,1] and all(np.abs(offs)<3e+3) and -bndGPSconst < offGPSSamp < 0    and 0 < offtimeSamp < bndtimeconst and 4 < deltax < 10:                         
        logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
        logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
        logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[2]))-0.5*(dsSamp-locTr[2])**2/locEr[2]**2
@@ -207,7 +208,7 @@ def log_probability(param,
                     tTilt,tGPS,tx,ty,GPS,
                     tiltErr,GPSErr,bounds,bndtimeconst,bndGPSconst,Nmax,dtx,dty,dtiltErr,locTruth,locErr,nstation):
     
-    lp = log_prior(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTruth,locErr,Nmax)
+    lp = log_prior(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTruth,locErr,Nmax,pt)
     if not np.isfinite(lp):
         return -np.inf
     return lp + log_likelihood(param,

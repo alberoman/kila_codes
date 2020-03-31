@@ -7,8 +7,8 @@ Created on Fri Mar 27 06:36:49 2020
 """
 
 
-pathfig = 'figs_UWD_offtime/' 
-filename = "progress_UWD_offGPS.h5"
+pathfig = 'figs_UWD_constr/' 
+filename = "progress_UWD_constr.h5"
 backend = emcee.backends.HDFBackend(filename)
 
 np.random.seed(1234)
