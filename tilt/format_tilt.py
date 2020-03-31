@@ -184,6 +184,10 @@ for i in station_indexes.keys():
     flag_full = np.array([])            #flag array to keep track of the concatenation of different files
     for j in range(len(station_indexes[i])):
         time,east_tilt,north_tilt = read_tilt(pathgg + file_list[station_indexes[i][j]])
+        if i == 'UWD' or i == 'SDH':
+            plt.figure()
+            plt.plot(time,east_tilt,'r',time,north_tilt,'b')
+            plt.ylabel(i)
         flag = np.zeros(len(time))
         flag[0] = 1    #the one in each array correspond to the first element of each file
         east_full = np.concatenate((east_full,east_tilt))
@@ -201,7 +205,7 @@ for i in station_indexes.keys():
     station[i]['time'] = t_short
     station[i]['north'] = north_fixed
     station[i]['east'] = east_fixed
-pickle.dump(station, open( "tilt_dictionary_01may.pickle", "wb" ))
+#pickle.dump(station, open( "tilt_dictionary_01may.pickle", "wb" ))
 
     
         

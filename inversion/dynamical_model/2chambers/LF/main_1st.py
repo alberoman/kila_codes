@@ -20,9 +20,9 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 
 np.random.seed(1234)
-bndtiltconst = 3000
+bndtiltconst = 1500
 bndGPSconst = 80
-bndtimeconst = 3600 * 24* 20
+bndtimeconst = 3600 * 24* 1
 rho = 2600
 g = 9.8
 rhog = rho * g
@@ -78,10 +78,10 @@ offsGPS = np.random.uniform(low = -bndGPSconst , high = 0,size = (nwalkers,1))
 pos = np.concatenate((offsGPS,pos),axis = 1 )
 
 offt = np.random.uniform(low = 0,high = bndtimeconst,size = (nwalkers,1))
-#pos = np.concatenate((offt,pos),axis = 1 )
+pos = np.concatenate((offt,pos),axis = 1 )
 
 nwalkers, ndim = pos.shape
-filename = "progress_UWD_offGPS.h5"
+filename = "progress_UWD_offtime.h5"
 backend = emcee.backends.HDFBackend(filename)
 
 with Pool() as pool:
@@ -104,6 +104,6 @@ Obs['ty'] =  ty
 Obs['GPS'] =  GPS
 fix_par = np.array([x,y,ls,ld,pt,mu,rhog,const,S])
 
-with open('results_UWD_offGPS.pickle','wb') as filen:
+with open('results_UWD_offtime.pickle','wb') as filen:
     pickle.dump((tTilt,tGPS,Obs,samples,samplesFlat,fix_par,Nmax),filen)
 #
