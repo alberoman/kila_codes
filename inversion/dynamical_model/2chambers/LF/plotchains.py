@@ -53,7 +53,7 @@ def plotter(samples,tTilt,tGPS,Obs,fix_par,Nobs,pathfigs):
     plt.savefig(pathfigs +'GPS.png')
 
 pathfigs = 'figs_UWD_constr/' 
-with open('results_UWD_offGPS.pickle','rb') as filen:
+with open('results_UWD_constr.pickle','rb') as filen:
     tTilt,tGPS,Obs,samples,samplesFlat,fix_par,Nobs = pickle.load(filen)
 
 ndim =  np.shape(samples)[2]

@@ -5,13 +5,19 @@ Created on Fri Mar 27 06:36:49 2020
 
 @author: aroman
 """
-
+import emcee
+import numpy as np
+import matplotlib.pyplot as plt
+import pickle 
+from main_lib import *
 
 pathfig = 'figs_UWD_constr/' 
 filename = "progress_UWD_constr.h5"
-backend = emcee.backends.HDFBackend(filename)
+thinval = 10
+discardval = 10000
 
 np.random.seed(1234)
+
 bndtiltconst = 3000
 bndGPSconst = 20
 bndtimeconst = 3600 * 24* 20
@@ -44,7 +50,6 @@ dtiltErr = 0
 
 Nmax = 40
 bounds = np.array([[+9,+11],[+7,+10],[+8,+11],[-2,0],[1.1,10],[1,10],[1,10]]) 
-filename = "progress_UWD_offtime.h5"
 backend = emcee.backends.HDFBackend(filename)
 nwalkers,ndim = backend.shape
 sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability,
@@ -97,16 +102,16 @@ plt.plot(tTilt / (3600 * 24),tx,'b')
 plt.plot(tTilt / (3600 * 24),txMod,'r')
 plt.fill_between(tTilt /(3600 * 24),txmed-txspread,txmed + txspread,color='grey',alpha=0.5)
 plt.xlabel('Time [Days]')
-plt.ylabel('Tilt-x UWD')
+plt.ylabel('Tilt-x SDH')
 
-plt.savefig(pathfig + 'tx_UWD.pdf')
+plt.savefig(pathfig + 'tx_SDH.pdf')
 plt.figure(2)
 plt.plot(tTilt / (3600 * 24),ty,'b')
 plt.plot(tTilt / (3600 * 24),tyMod,'r')
 plt.fill_between(tTilt / (3600 * 24),tymed - tyspread,tymed + tyspread,color='grey',alpha=0.5)
 plt.xlabel('Time [Days]')
-plt.ylabel('Tilt-y UWD')
-plt.savefig(pathfig + 'ty_UWD.pdf')
+plt.ylabel('Tilt-y SDH')
+plt.savefig(pathfig + 'ty_SDH.pdf')
 
 plt.figure(3)
 plt.plot(tGPS /(3600 * 24),GPS,'b')
@@ -114,5 +119,12 @@ plt.plot(tGPS / (3600 * 24),GPSMod,'r')
 plt.fill_between(tGPS/ (3600 * 24),GPSmed - GPSspread,GPSmed + GPSspread,color='grey',alpha=0.5)
 plt.xlabel('Time [Days]')
 plt.ylabel('Piston displacement [m]')
-
 plt.savefig(pathfig + 'GPS.pdf')
+
+samples = sampler.get_chain(thin = thinval,discard = discardval)
+fig, axes = plt.subplots(ndim, figsize=(10, 7), sharex=True)
+for i in range(ndim):
+    ax = axes[i]
+    ax.plot(samples[:, :, i], "k", alpha=0.3)
+    ax.set_xlim(0, len(samples))
+    ax.yaxis.set_label_coords(-0.1, 0.5)
