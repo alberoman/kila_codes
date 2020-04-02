@@ -17,7 +17,11 @@ from preparedata import preparation
 from multiprocessing import Pool
 import os
 import sys
-
+restart = 1
+if restart == 1:
+    answer = input('Restarting! You sure? Press y to continue')
+    if not answer =='y':
+        sys.exit()
 os.environ["OMP_NUM_THREADS"] = "1" 
 np.random.seed(1234)
 Ncycmin = 20
@@ -48,12 +52,22 @@ try:
     f.close()
 except:
     print('Directory exists!')
-if os.path.isfile(pathgg + 'progress.h5'):
-    print('OhOh. Look like you started something...')
-    sys.exit()
 
 
 nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0 = preparation(pathgg,stations,date)
+pickle.dump((nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0),open(pathgg + 'data.pickle','wb'))
+Obs = {}
+Obs['tx'] =  tx
+Obs['ty'] =  ty
+Obs['GPS'] =  GPS
+Obs['tTilt'] = tTilt
+Obs['tGPS'] =  tGPS
+fix_par = np.array([x,y,ls,ld,pt,mu,rhog,const,S,Nmax,tiltErr,GPSErr])
+Obs['list_station'] = stations
+Obs['fix_par'] = fix_par
+
+with open(pathgg + 'parameters.pickle','wb') as filen:
+    pickle.dump(Obs,filen)
 Nst = 1 + np.max(nstation)
 dtx = np.zeros(len(tx))
 dty = np.zeros(len(ty))
@@ -132,23 +146,15 @@ with Pool() as pool:
     #pos, _, _ = sampler.run_mcmc(pos, 2500,progress=True)
     #sampler.reset()
     print('Running main sampling')
-    sampler.run_mcmc(pos, 150000, progress=True,thin = 10)
+    if restart == 1:
+        sampler.run_mcmc(None, 350000, progress=True,thin = 10)
+    else:
+        sampler.run_mcmc(pos, 150000, progress=True,thin = 10)#
 #    for sampler in sampler.sample(pos, 150000, progress=True,thin = 10):
 #        if sampler.iteration % 100:
 #            continue
 #        print('Correlation time is ', sampler.get_autocorr_time())
 #        print('And the ratio of the iteration to the corr. time is ', sampler.iteration / sampler.get_autocorr_time())
 
-Obs = {}
-Obs['tx'] =  tx
-Obs['ty'] =  ty
-Obs['GPS'] =  GPS
 
-fix_par = np.array([x,y,ls,ld,pt,mu,rhog,const,S,Nmax,tiltErr,GPSErr])
-stations  = ['UWD']
-Obs['list_station'] = stations
-Obs['fix_par'] = fix_par
-
-with open('parameters.pickle','wb') as filen:
-    pickle.dump(Obs,filen)
 #

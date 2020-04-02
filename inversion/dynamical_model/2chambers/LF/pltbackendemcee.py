@@ -10,47 +10,39 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle 
 from main_lib import *
+import os
+import corner
+discardval = 1000
+thinval = 1
+pathgg = 'UWD/07-03-2018/locErr7.5/'
+pathfig = pathgg + 'figs/'
+try:
+    os.mkdir(pathfig)
+except:
+    print('Directory already exist')
+parameters = pickle.load(open(pathgg + 'parameters.pickle','rb')) 
+fix_par = parameters['fix_par']
+tx = parameters['tx']
+ty = parameters['ty']
+dtx = np.zeros(np.shape(tx))
+dty = np.zeros(np.shape(ty))
 
-pathfig = 'figs_UWD_constr/' 
-filename = "progress_UWD_constr.h5"
-thinval = 10
-discardval = 10000
+GPS = parameters['GPS']
+x,y,ls,ld,pt,mu,rhog,const,S,Nmax,tiltErr,GPSErr = fix_par
 
 np.random.seed(1234)
+bndtiltconst = 1500
+bndGPSconst = 100
+bndtimeconst = 3600 * 24* 1
 
-bndtiltconst = 3000
-bndGPSconst = 20
-bndtimeconst = 3600 * 24* 20
-rho = 2600
-g = 9.8
-rhog = rho * g
-#Conduit parameters
-ls = 4e+4
-ld = 2.5e+3
-mu = 500
-#Pressures and friction
-pt = 2.0e+7
-poisson = 0.25
-lame = 1e+9
-#Cylinder parameters
-Rcyl = 1.0e+3
-S = 3.14 * Rcyl**2 
-const = -9. /(4 * 3.14) * (1 - poisson) / lame
-tiltErr = 1e-5
-GPSErr = 1e-2
-nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr = pickle.load(open('TiltandGPS_UWD.pickle','rb'))
+nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0= pickle.load(open(pathgg + 'data.pickle','rb'))
 
-Nst = 1 + np.max(nstation)
-tx = - tx
-ty =  -ty
-GPS = -GPS
-dtx = np.zeros(len(tx))
-dty = np.zeros(len(ty))
+
 dtiltErr = 0
-
 Nmax = 40
-bounds = np.array([[+9,+11],[+7,+10],[+8,+11],[-2,0],[1.1,10],[1,10],[1,10]]) 
-backend = emcee.backends.HDFBackend(filename)
+filename = 'progress.h5'
+bounds = np.array([[+9,+11],[+7,+10],[+8,+11],[-2,0],[1.1,10],[1,10],[1,20]]) 
+backend = emcee.backends.HDFBackend(pathgg + filename)
 nwalkers,ndim = backend.shape
 sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability,
                                     args=(x,y,
@@ -59,7 +51,7 @@ sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability,
                                         tTilt,tGPS,tx,ty,GPS,
                                         tiltErr,GPSErr,bounds,bndtimeconst,bndGPSconst,Nmax,dtx,dty,dtiltErr,locTruth,locErr,nstation), backend = backend)
 
-samples = sampler.flatchain
+samples = sampler.get_chain(flat = True)
 parmax = samples[np.argmax(sampler.flatlnprobability)],
 offtime,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax[0]
 offxSamp = np.array([offx1])
@@ -102,16 +94,16 @@ plt.plot(tTilt / (3600 * 24),tx,'b')
 plt.plot(tTilt / (3600 * 24),txMod,'r')
 plt.fill_between(tTilt /(3600 * 24),txmed-txspread,txmed + txspread,color='grey',alpha=0.5)
 plt.xlabel('Time [Days]')
-plt.ylabel('Tilt-x SDH')
+plt.ylabel('Tilt-x' )
 
-plt.savefig(pathfig + 'tx_SDH.pdf')
+plt.savefig(pathfig + 'tx.pdf')
 plt.figure(2)
 plt.plot(tTilt / (3600 * 24),ty,'b')
 plt.plot(tTilt / (3600 * 24),tyMod,'r')
 plt.fill_between(tTilt / (3600 * 24),tymed - tyspread,tymed + tyspread,color='grey',alpha=0.5)
 plt.xlabel('Time [Days]')
-plt.ylabel('Tilt-y SDH')
-plt.savefig(pathfig + 'ty_SDH.pdf')
+plt.ylabel('Tilt-y')
+plt.savefig(pathfig + 'ty.pdf')
 
 plt.figure(3)
 plt.plot(tGPS /(3600 * 24),GPS,'b')
@@ -121,6 +113,11 @@ plt.xlabel('Time [Days]')
 plt.ylabel('Piston displacement [m]')
 plt.savefig(pathfig + 'GPS.pdf')
 
+samples = sampler.get_chain(thin = thinval,discard = discardval,flat = True)
+plt.figure()
+corner.corner(samples)
+plt.savefig(pathfig + 'hist.pdf')
+
 samples = sampler.get_chain(thin = thinval,discard = discardval)
 fig, axes = plt.subplots(ndim, figsize=(10, 7), sharex=True)
 for i in range(ndim):
@@ -128,3 +125,6 @@ for i in range(ndim):
     ax.plot(samples[:, :, i], "k", alpha=0.3)
     ax.set_xlim(0, len(samples))
     ax.yaxis.set_label_coords(-0.1, 0.5)
+plt.savefig(pathfig + 'chains2.pdf')
+
+
