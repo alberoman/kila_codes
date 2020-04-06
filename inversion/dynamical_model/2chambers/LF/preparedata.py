@@ -39,7 +39,7 @@ def format_gps(A):
     uz = np.array(uz)
     return t,d,uz
 
-def preparation(pathgg,list_station,date):
+def preparation(list_station,date):
     
     stations = pickle.load(open('../../../../tilt/tilt_dictionary_01may.pickle','rb'))
     if date == '06-16-2018':
@@ -164,4 +164,5 @@ def preparation(pathgg,list_station,date):
     tx = - tx
     ty =  -ty
     GPS = -GPS
-    return nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0
+    Nst = 1 + np.max(nstation)
+    return Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0

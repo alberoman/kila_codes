@@ -12,48 +12,43 @@ import pickle
 from main_lib import *
 import os
 import corner
+from shutil import copyfile
 discardval = 1000
 thinval = 1
-pathgg = 'UWD/07-03-2018/locErr7.5/'
+pathgg = 'UWD/07-03-2018/new/'
+copyfile(pathgg + 'progress.h5', pathgg + 'progress_temp.h5' )
 pathfig = pathgg + 'figs/'
+
 try:
     os.mkdir(pathfig)
 except:
     print('Directory already exist')
-parameters = pickle.load(open(pathgg + 'parameters.pickle','rb')) 
-fix_par = parameters['fix_par']
-tx = parameters['tx']
-ty = parameters['ty']
-dtx = np.zeros(np.shape(tx))
-dty = np.zeros(np.shape(ty))
+#parameters = pickle.load(open(pathgg + 'parameters.pickle','rb')) 
+#fix_par = parameters['fix_par']
+##tx = parameters['tx']
+#ty = parameters['ty']
+#dtx = np.zeros(np.shape(tx))
+#dty = np.zeros(np.shape(ty))
 
-GPS = parameters['GPS']
-x,y,ls,ld,pt,mu,rhog,const,S,Nmax,tiltErr,GPSErr = fix_par
+#GPS = parameters['GPS']
+#x,y,ls,ld,pt,mu,rhog,const,S,Nmax,tiltErr,GPSErr = fix_par
 
 np.random.seed(1234)
 bndtiltconst = 1500
 bndGPSconst = 100
 bndtimeconst = 3600 * 24* 1
 
-nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0= pickle.load(open(pathgg + 'data.pickle','rb'))
-
+nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0,bounds,bndtiltconst,bndGPSconst,bndtimeconst,tiltErr,GPSErr,fix_par,niter = pickle.load(open(pathgg + 'data.pickle','rb'))
+x,y,ls,ld,pt,mu,rhog,const,S,Nmax,tiltErr,GPSErr = fix_par
 
 dtiltErr = 0
 Nmax = 40
 filename = 'progress.h5'
-bounds = np.array([[+9,+11],[+7,+10],[+8,+11],[-2,0],[1.1,10],[1,10],[1,20]]) 
-backend = emcee.backends.HDFBackend(pathgg + filename)
-nwalkers,ndim = backend.shape
-sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability,
-                                    args=(x,y,
-                                        ls,ld,pt,mu,
-                                        rhog,const,S,
-                                        tTilt,tGPS,tx,ty,GPS,
-                                        tiltErr,GPSErr,bounds,bndtimeconst,bndGPSconst,Nmax,dtx,dty,dtiltErr,locTruth,locErr,nstation), backend = backend)
-
-samples = sampler.get_chain(flat = True)
-parmax = samples[np.argmax(sampler.flatlnprobability)],
-offtime,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax[0]
+reader = emcee.backends.HDFBackend(pathgg + filename, read_only = True )
+nwalkers,ndim = reader.shape
+samples = reader.get_chain(flat = True)
+parmax = samples[np.argmax(reader.get_log_prob(flat = True))]
+offtime,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
 offxSamp = np.array([offx1])
 offySamp = np.array([offy1])
 txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
@@ -113,18 +108,18 @@ plt.xlabel('Time [Days]')
 plt.ylabel('Piston displacement [m]')
 plt.savefig(pathfig + 'GPS.pdf')
 
-samples = sampler.get_chain(thin = thinval,discard = discardval,flat = True)
+samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
 plt.figure()
 corner.corner(samples)
 plt.savefig(pathfig + 'hist.pdf')
 
-samples = sampler.get_chain(thin = thinval,discard = discardval)
+samples = reader.get_chain(thin = thinval,discard = discardval)
 fig, axes = plt.subplots(ndim, figsize=(10, 7), sharex=True)
 for i in range(ndim):
     ax = axes[i]
     ax.plot(samples[:, :, i], "k", alpha=0.3)
     ax.set_xlim(0, len(samples))
     ax.yaxis.set_label_coords(-0.1, 0.5)
-plt.savefig(pathfig + 'chains2.pdf')
-
+plt.savefig(pathfig + 'chains.pdf')
+os.remove(pathgg + 'progress_temp.h5')
 
