@@ -32,17 +32,17 @@ def pd_analytic_root(t,R3,T1,phi,a,b,c,d,pd0,ps0,pslip):
     ps_root = -R3 + (-c + d)*(-R3 - pd0 + (R3 + ps0)*(T1 + a - phi + 1)/2) * np.exp(t*(b - c))/a + (c + d)*(2*R3 + 2*a*(R3 + ps0) + 2*pd0 - (R3 + ps0)*(T1 + a - phi + 1)) * np.exp(t*(b + c))/(2*a) - pslip
     return  ps_root
 
-def TwoChambers_LF(w0,par,pslip,tslip,tsl_seed):
+def TwoChambers_UF(w0,par,pslip,tslip,tsl_seed):
     ps0,pd0 = w0
     r1,r3,r5,t1,phi,a,b,c,d = par
-    tslip = optimize.brentq(pd_analytic_root,0,1e+9, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
-    tsegment = np.linspace(0,tslip,50)
+    tslip = optimize.brentq(ps_analytic_root,0,1e+7, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
+    tsegment = np.linspace(0,tslip,30)
     pssegment = ps_analytic(tsegment,r3,t1,phi,a,b,c,d,pd0,ps0)
     pdsegment = pd_analytic(tsegment,r3,t1,phi,a,b,c,d,pd0,ps0)
-    psend = pssegment[-1]
-    return tsegment,tslip,pssegment,pdsegment,psend
+    pdend = pd_analytic(tslip,r3,t1,phi,a,b,c,d,pd0,ps0)
+    return tsegment,tslip,pssegment,pdsegment,pdend
 
-def TwoChambers_LF_timein(w0,par,pslip,tslip,time,ps,pd,t_x,x_data,N):
+def TwoChambers_UF_timein(w0,par,pslip,tslip,time,ps,pd,t_x,x_data,N):
     ps0,pd0 = w0
     r1,r3,r5,t1,phi,a,b,c,d = par
     tsegment = time[time >= tslip]
@@ -53,98 +53,15 @@ def TwoChambers_LF_timein(w0,par,pslip,tslip,time,ps,pd,t_x,x_data,N):
     pd[time >= tslip] = pdsegment
     x_data[t_x >= tslip] = 2 * (1 - r5) / (1 + r1) * N
     #tslip = optimize.newton(ps_analytic_root, tsl_seed, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
-    tslip = optimize.brentq(pd_analytic_root,0,1e+8, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
-    psend = ps_analytic(tslip,r3,t1,phi,a,b,c,d,pd0,ps0)
-    return tslip,ps,pd,psend,x_data
-
-
-
-
-
-def DirectModelEmcee_inv_LF(tOrigTilt,tOrigGPS,
-                         offtimeSamp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                         VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
-                         Xst,Yst,
-                         ls,ld,pt,mu,
-                         rhog,cs,S,nstation):
-
-    
-    tOrigTilt = tOrigTilt + offtimeSamp
-    tOrigGPS = tOrigGPS + offtimeSamp
-    
-    VsSamp = 10**VsExpSamp
-    VdSamp  = 10**VdExpSamp
-    ksSamp = 10**kExpSamp
-
-    R5Samp =0
-    
-    R1Samp = rhog * VdSamp /(ksSamp*S)
-    T1 = (condsSamp / conddSamp )**4 * ld /ls
-    PHI = ksSamp /ksSamp * VsSamp / VdSamp
-    params = [T1,PHI,R3Samp] #R1 is the ratio of the hydraulic parameters (for high values the top conduit is more efficient)
-    tstar = VsSamp * 8 * mu * ld / (ksSamp * 3.14 * conddSamp**4)
-    xstar = pspdSamp * VdSamp / (ksSamp * S) 
-    #Careful if you want to change to the UF version (this is LF)
-    #xstar should be 
-    #xstar = taud * Vs / (ks * S**2)
-    un_plus_R1 = 1 + R1Samp
-    A = np.sqrt(T1**2 - 2*T1*PHI + 2*T1 + PHI**2 + 2*PHI + 1)
-    B = -T1/2 - PHI/2 - 1./2
-    C =  np.sqrt(4*PHI + (-T1 + PHI - 1)**2)/2    
-    D = T1/2 - PHI /2 + 1./2
-    params = [R1Samp,R3Samp,R5Samp,T1,PHI,A,B,C,D]
-   
-    
-    
-    tOrigGPS = tOrigGPS /tstar
-    tOrigTilt = tOrigTilt / tstar
-    ps = np.ones(len(tOrigTilt))
-    pd = np.ones(len(tOrigTilt))
-    gps = np.ones(len(tOrigGPS))
-    PD0 =   + 2 * (1 - R5Samp) / un_plus_R1 
-    PSLIP = - 2 * R1Samp * (1 - R5Samp)/un_plus_R1
-    TSLIP = 0
-    TSLIP_seed = 1
-    tseg,tslip,PS,PD,ps0 = TwoChambers_LF(np.array([0.1,0.1]),params,0,TSLIP,TSLIP_seed) # Calculate ps at the first cycle
-    PS0 =  ps0    
-    w0 = np.array([PS0,PD0])
-    TSLIP = 0
-    N_cycles = int(np.ceil((1 + R1Samp)/(2 * R1Samp) * R3Samp)) - 1
-    i  = 1
-    thresh = 80
-    while i < N_cycles + 1 and i < thresh:
-        tslip,ps,pd,ps0,gps = TwoChambers_LF_timein(w0,params,PSLIP,TSLIP,tOrigTilt,ps,pd,tOrigGPS,gps,i)
-        PD0 =   + 2 * (1 - R5Samp) / un_plus_R1 -2 * R1Samp * (1 - R5Samp)/un_plus_R1 * i
-        PS0 = ps0
-        PSLIP =   - 2 * R1Samp * (1 - R5Samp)/un_plus_R1 * (i + 1)
-        TSLIP = TSLIP + tslip
-        w0 = np.array([PS0,PD0])
-        i = i + 1
-    ps = ps * pspdSamp
-    pd = pd * pspdSamp
-    coeffxs = cs * dsSamp * (Xst -  xsSamp) / (dsSamp**2 + (Xst -  xsSamp)**2 + (Yst -  ysSamp)**2 )**(5./2) 
-    coeffys = cs * dsSamp * (Yst -  ysSamp) / (dsSamp**2 + (Xst -  xsSamp)**2 + (Yst -  ysSamp)**2 )**(5./2) 
-    coeffxd = cs * ddSamp * (Xst -  xdSamp) / (ddSamp**2 + (Xst -  xdSamp)**2 + (Yst -  ydSamp)**2 )**(5./2) 
-    coeffyd = cs * ddSamp * (Yst -  ydSamp) / (ddSamp**2 + (Xst -  xdSamp)**2 + (Yst -  ydSamp)**2 )**(5./2) 
-    txMod = coeffxs * VsSamp * ps + coeffxd * VdSamp * pd
-    tyMod = coeffys * VsSamp * ps + coeffyd * VdSamp * pd
-    #dtxMod = np.diff(txMod[j]) / np.diff(tTiltList[j]))
-    #dtyMod.append(np.diff(tyMod[j]) / np.diff(tTiltList[j]))
-    
-    gpsMod = gps * xstar
-    tOrigTilt = tOrigTilt / tstar
-    tOrigGPS = tOrigGPS * tstar
-    for i in range((np.max(nstation) + 1)):
-        txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]*1e-6
-        tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]*1e-6
-    gpsMod = gpsMod  + offGPSSamp
-    return txMod,tyMod,gpsMod#,dtxMod, dtyMod
+    tslip = optimize.brentq(ps_analytic_root,0,1e+8, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
+    pdend = pd_analytic(tslip,r3,t1,phi,a,b,c,d,pd0,ps0)
+    return tslip,ps,pd,pdend,x_data
 
 def DirectModelEmcee_inv_UF(tOrigTilt,tOrigGPS,
                          offtimeSamp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                          VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
                          Xst,Yst,
-                         ls,ld,pt,mu,
+                         ls,ld,mu,
                          rhog,cs,S,nstation):
 
     
@@ -160,41 +77,34 @@ def DirectModelEmcee_inv_UF(tOrigTilt,tOrigGPS,
     R1Samp = rhog * VsSamp /(ksSamp*S)
     T1 = (condsSamp / conddSamp )**4 * ld /ls
     PHI = ksSamp /ksSamp * VsSamp / VdSamp
-    params = [T1,PHI,R3Samp] #R1 is the ratio of the hydraulic parameters (for high values the top conduit is more efficient)
     tstar = VsSamp * 8 * mu * ld / (ksSamp * 3.14 * conddSamp**4)
     xstar = pspdSamp * VsSamp / (ksSamp * S) 
-    #Careful if you want to change to the UF version (this is LF)
-    #xstar should be 
-    #xstar = taud * Vs / (ks * S**2)
     un_plus_R1 = 1 + R1Samp
     A = np.sqrt(T1**2 - 2*T1*PHI + 2*T1 + PHI**2 + 2*PHI + 1)
     B = -T1/2 - PHI/2 - 1./2
     C =  np.sqrt(4*PHI + (-T1 + PHI - 1)**2)/2    
     D = T1/2 - PHI /2 + 1./2
     params = [R1Samp,R3Samp,R5Samp,T1,PHI,A,B,C,D]
-   
-    
-    
     tOrigGPS = tOrigGPS /tstar
     tOrigTilt = tOrigTilt / tstar
     ps = np.ones(len(tOrigTilt))
     pd = np.ones(len(tOrigTilt))
     gps = np.ones(len(tOrigGPS))
-    PD0 =   + 2 * (1 - R5Samp) / un_plus_R1 
+    PS0 =   + 2 * (1 - R5Samp) / un_plus_R1 
     PSLIP = - 2 * R1Samp * (1 - R5Samp)/un_plus_R1
     TSLIP = 0
     TSLIP_seed = 1
-    tseg,tslip,PS,PD,ps0 = TwoChambers_LF(np.array([0.1,0.1]),params,0,TSLIP,TSLIP_seed) # Calculate ps at the first cycle
-    PS0 =  ps0    
+    tseg,tslip,PS,PD,pd0 = TwoChambers_UF(np.array([0.1,0.1]),params,0,TSLIP,TSLIP_seed) # Calculate ps at the first cycle
+    PD0 =  pd0    
     w0 = np.array([PS0,PD0])
     TSLIP = 0
     N_cycles = int(np.ceil((1 + R1Samp)/(2 * R1Samp) * R3Samp)) - 1
     i  = 1
     thresh = 80
     while i < N_cycles + 1 and i < thresh:
-        tslip,ps,pd,ps0,gps = TwoChambers_LF_timein(w0,params,PSLIP,TSLIP,tOrigTilt,ps,pd,tOrigGPS,gps,i)
-        PD0 =   + 2 * (1 - R5Samp) / un_plus_R1 -2 * R1Samp * (1 - R5Samp)/un_plus_R1 * i
-        PS0 = ps0
+        tslip,ps,pd,pd0,gps = TwoChambers_UF_timein(w0,params,PSLIP,TSLIP,tOrigTilt,ps,pd,tOrigGPS,gps,i)
+        PS0 =   + 2 * (1 - R5Samp) / un_plus_R1 -2 * R1Samp * (1 - R5Samp)/un_plus_R1 * i
+        PD0 = pd0
         PSLIP =   - 2 * R1Samp * (1 - R5Samp)/un_plus_R1 * (i + 1)
         TSLIP = TSLIP + tslip
         w0 = np.array([PS0,PD0])
@@ -219,22 +129,92 @@ def DirectModelEmcee_inv_UF(tOrigTilt,tOrigGPS,
     gpsMod = gpsMod  + offGPSSamp
     return txMod,tyMod,gpsMod#,dtxMod, dtyMod
 
+def DirectModelEmcee_inv_UF_debug(tOrigTilt,tOrigGPS,
+                         offtimeSamp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
+                         VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
+                         Xst,Yst,
+                         ls,ld,mu,
+                         rhog,cs,S,nstation):
 
+    
+    tOrigTilt = tOrigTilt + offtimeSamp
+    tOrigGPS = tOrigGPS + offtimeSamp
+    
+    VsSamp = 10**VsExpSamp
+    VdSamp  = 10**VdExpSamp
+    ksSamp = 10**kExpSamp
 
-def log_likelihood(param,
+    R5Samp =0
+    
+    R1Samp = rhog * VsSamp /(ksSamp*S)
+    T1 = (condsSamp / conddSamp )**4 * ld /ls
+    PHI = ksSamp /ksSamp * VsSamp / VdSamp
+    tstar = VsSamp * 8 * mu * ld / (ksSamp * 3.14 * conddSamp**4)
+    xstar = pspdSamp * VsSamp / (ksSamp * S) 
+    un_plus_R1 = 1 + R1Samp
+    A = np.sqrt(T1**2 - 2*T1*PHI + 2*T1 + PHI**2 + 2*PHI + 1)
+    B = -T1/2 - PHI/2 - 1./2
+    C =  np.sqrt(4*PHI + (-T1 + PHI - 1)**2)/2    
+    D = T1/2 - PHI /2 + 1./2
+    params = [R1Samp,R3Samp,R5Samp,T1,PHI,A,B,C,D]
+    tOrigGPS = tOrigGPS /tstar
+    tOrigTilt = tOrigTilt / tstar
+    ps = np.ones(len(tOrigTilt))
+    pd = np.ones(len(tOrigTilt))
+    gps = np.ones(len(tOrigGPS))
+    PS0 =   + 2 * (1 - R5Samp) / un_plus_R1 
+    PSLIP = - 2 * R1Samp * (1 - R5Samp)/un_plus_R1
+    TSLIP = 0
+    TSLIP_seed = 1
+    tseg,tslip,PS,PD,pd0 = TwoChambers_UF(np.array([0.1,0.1]),params,0,TSLIP,TSLIP_seed) # Calculate ps at the first cycle
+    PD0 =  pd0    
+    w0 = np.array([PS0,PD0])
+    TSLIP = 0
+    N_cycles = int(np.ceil((1 + R1Samp)/(2 * R1Samp) * R3Samp)) - 1
+    i  = 1
+    thresh = 80
+    while i < N_cycles + 1 and i < thresh:
+        tslip,ps,pd,pd0,gps = TwoChambers_UF_timein(w0,params,PSLIP,TSLIP,tOrigTilt,ps,pd,tOrigGPS,gps,i)
+        PS0 =   + 2 * (1 - R5Samp) / un_plus_R1 -2 * R1Samp * (1 - R5Samp)/un_plus_R1 * i
+        PD0 = pd0
+        PSLIP =   - 2 * R1Samp * (1 - R5Samp)/un_plus_R1 * (i + 1)
+        TSLIP = TSLIP + tslip
+        w0 = np.array([PS0,PD0])
+        i = i + 1
+    ps = ps * pspdSamp
+    pd = pd * pspdSamp
+    coeffxs = cs * dsSamp * (Xst -  xsSamp) / (dsSamp**2 + (Xst -  xsSamp)**2 + (Yst -  ysSamp)**2 )**(5./2) 
+    coeffys = cs * dsSamp * (Yst -  ysSamp) / (dsSamp**2 + (Xst -  xsSamp)**2 + (Yst -  ysSamp)**2 )**(5./2) 
+    coeffxd = cs * ddSamp * (Xst -  xdSamp) / (ddSamp**2 + (Xst -  xdSamp)**2 + (Yst -  ydSamp)**2 )**(5./2) 
+    coeffyd = cs * ddSamp * (Yst -  ydSamp) / (ddSamp**2 + (Xst -  xdSamp)**2 + (Yst -  ydSamp)**2 )**(5./2) 
+    txMod = coeffxs * VsSamp * ps + coeffxd * VdSamp * pd
+    tyMod = coeffys * VsSamp * ps + coeffyd * VdSamp * pd
+    #dtxMod = np.diff(txMod[j]) / np.diff(tTiltList[j]))
+    #dtyMod.append(np.diff(tyMod[j]) / np.diff(tTiltList[j]))
+    
+    gpsMod = gps * xstar
+    tOrigTilt = tOrigTilt / tstar
+    tOrigGPS = tOrigGPS * tstar
+    for i in range((np.max(nstation) + 1)):
+        txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]*1e-6
+        tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]*1e-6
+    gpsMod = gpsMod  + offGPSSamp
+    return txMod,tyMod,gpsMod,ps,pd,coeffxs,coeffys,coeffxd,coeffyd
+
+def log_likelihood_UF(param,
                    xstation,ystation,
-                   ls,ld,pt,mu,
+                   ls,ld,mu,
                    rhog,const,S,
                    tTilt,tGPS,txObs,tyObs,GPSObs,
                    tiltErr,GPSErr,nstation):
     offtimeSamp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
     offxSamp = np.array([offx1])
     offySamp = np.array([offy1])
-    txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
+    txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
                                               offtimeSamp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                                               VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
                                               xstation,ystation,
-                                              ls,ld,pt,mu,
+                                              ls,ld,mu,
                                               rhog,const,S,nstation)
     sigma2Tilt = tiltErr ** 2
     sigma2GPS = GPSErr ** 2
@@ -245,12 +225,12 @@ def log_likelihood(param,
      
     return liketilt + likeGPS
 
-def log_prior(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTr,locEr,Nobs,pt):
+def log_prior_UF(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTr,locEr,Nobs):
    offtimeSamp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
    kSamp = 10**kExpSamp
    VsSamp= 10**VsExpSamp
    VdSamp = 10**VdExpSamp
-   R1Samp = rhog * VdSamp /(kSamp*S)
+   R1Samp = rhog * VsSamp /(kSamp*S)
    offs = np.array([offx1,offy1,])
    #if bounds[0,0] < VsExpSamp < bounds[0,1] and bounds[1,0] < VdExpSamp < bounds[1,1] and bounds[2,0] < kExpSamp < bounds[2,1] and bounds[3,0] < R5ExpSamp < bounds[3,1] and 2* R1Samp* (Nobs -5) * (1 - R5Samp) / (R1Samp +1) +1   < R3Samp < 2* R1Samp* (Nobs + 30) * (1 - R5Samp) / (R1Samp +1) +1 and bounds[5,0] < condsSamp < bounds[5,1] and bounds[6,0] < conddSamp < bounds[6,1] and all(np.abs(offs)<3e+3) and  0 < offGPSSamp < bndGPSconst   and 0 < offtimeSamp < bndtimeconst and 4 < deltax < 10:  
    if bounds[0,0] < VsExpSamp < bounds[0,1] and bounds[1,0] < VdExpSamp < bounds[1,1] and bounds[2,0] < kExpSamp < bounds[2,1] and rhog * (1 + R1Samp) * bounds[3,0] / (2 * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[3,1] / (2 * R1Samp) and  bounds[4,0] * 2 * R1Samp / (1 + R1Samp) < R3Samp < bounds[4,1] * 2 * R1Samp / (1 + R1Samp) and bounds[5,0] < condsSamp < bounds[5,1] and bounds[6,0] < conddSamp < bounds[6,1] and all(np.abs(offs)<3e+3) and  -bndGPSconst < offGPSSamp < bndGPSconst   and 0 < offtimeSamp < bndtimeconst:                         
@@ -263,19 +243,19 @@ def log_prior(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTr,locEr,Nobs,pt):
        return logprob
    return -np.inf
 
-def log_probability(param,
+def log_probability_UF(param,
                     xstation,ystation,
-                    ls,ld,pt,mu,
+                    ls,ld,mu,
                     rhog,const,S,
                     tTilt,tGPS,tx,ty,GPS,
                     tiltErr,GPSErr,bounds,bndtimeconst,bndGPSconst,Nmax,locTruth,locErr,nstation):
     
-    lp = log_prior(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTruth,locErr,Nmax,pt)
+    lp = log_prior_UF(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTruth,locErr,Nmax)
     if not np.isfinite(lp):
         return -np.inf
-    return lp + log_likelihood(param,
+    return lp + log_likelihood_UF(param,
                                xstation,ystation,
-                               ls,ld,pt,mu,
+                               ls,ld,mu,
                                rhog,const,S,
                                tTilt,tGPS,tx,ty,GPS,
                                tiltErr,GPSErr,nstation)   

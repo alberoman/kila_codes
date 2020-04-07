@@ -1,0 +1,4 @@
+test upper feeder
+Viscosity 100 pa s
+prior on reservoirs size same for both reservoirs
+ 
