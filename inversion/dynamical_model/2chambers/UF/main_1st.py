@@ -9,7 +9,7 @@ def parameters_init():
     #Initialize parameters
     bndtiltconst = 1500
     bndGPSconst = 200
-    bndtimeconst = 3600 * 24* 15
+    bndtimeconst = 3600 * 24* 6
     bounds = np.array([[+8,+11],[+8,+11],[+8,+10],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,10]]) #Vs,Vd,as,ad,taus,R5,R3,k_exp
 
     rho = 2600
@@ -80,9 +80,9 @@ from multiprocessing import Pool
 import os
 import sys
 
-pathrun = 'test'
+pathrun = '35_cycle_move_20'
 os.environ["OMP_NUM_THREADS"] = "1" 
-stations  = ['UWD']
+stations  = ['SDH']
 date = '06-16-2018'
 date = '07-03-2018'
 thin = 10
@@ -92,9 +92,9 @@ Ncycmax = 60
 nwalkers = 64
 tiltErr = 1e-6
 GPSErr = 1e-2
-dxmin = 2.5
-dxmax = 5
-Nmax = 40
+dxmin = 3.0
+dxmax = 4.0
+Nmax = 35
 
 
 if len(stations) > 1:
@@ -141,18 +141,22 @@ else:
     niter = input('How many iteration you want to run? ')
     Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0 = preparation_UF(stations,date)
     ls,ld,mu,rhog,const,S,bndtiltconst,bndGPSconst,bndtimeconst,bounds,ndim = parameters_init()
+    a_parameter = 20
     pos,nwalkers,ndim = walkers_init(nwalkers,ndim)
     fix_par = np.array([x,y,ls,ld,mu,rhog,const,S,Nmax,tiltErr,GPSErr])
-    pickle.dump((nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0,bounds,bndtiltconst,bndGPSconst,bndtimeconst,tiltErr,GPSErr,fix_par,niter),open(pathgg + 'data.pickle','wb'))
+    pickle.dump((nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0,bounds,bndtiltconst,bndGPSconst,bndtimeconst,tiltErr,GPSErr,fix_par,niter,a_parameter),open(pathgg + 'data.pickle','wb'))
     filename = pathgg + "progress.h5"
     backend = emcee.backends.HDFBackend(filename)
+    
+    move = emcee.moves.StretchMove(a=a_parameter)
+    
     with Pool() as pool:
         sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
                                         args=(x,y,
                                             ls,ld,mu,
                                             rhog,const,S,
                                             tTilt,tGPS,tx,ty,GPS,
-                                            tiltErr,GPSErr,bounds,bndtimeconst,bndGPSconst,Nmax,locTruth,locErr,nstation), backend = backend, pool = pool)
+                                            tiltErr,GPSErr,bounds,bndtimeconst,bndGPSconst,Nmax,locTruth,locErr,nstation),moves = [move], backend = backend, pool = pool)
        
         print('Running main sampling')
         sampler.run_mcmc(pos,niter, progress = True,thin = thin)

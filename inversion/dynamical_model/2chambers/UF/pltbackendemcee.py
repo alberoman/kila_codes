@@ -13,9 +13,9 @@ from main_lib_UF import *
 import os
 import corner
 from shutil import copyfile
-discardval = 10
+discardval = 1
 thinval = 1
-pathgg = 'UWD/07-03-2018/test/'
+pathgg = 'SDH/07-03-2018/35_cycle_move_20/'
 copyfile(pathgg + 'progress.h5', pathgg + 'progress_temp.h5' )
 pathfig = pathgg + 'figs/'
 
@@ -35,13 +35,30 @@ except:
 
 np.random.seed(1234)
 
+list_pickle = pickle.load(open(pathgg + 'data.pickle','rb'))
 
-nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0,bounds,bndtiltconst,bndGPSconst,bndtimeconst,tiltErr,GPSErr,fix_par,niter = pickle.load(open(pathgg + 'data.pickle','rb'))
+if len(list_pickle) == 19:
+    nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0,bounds,bndtiltconst,bndGPSconst,bndtimeconst,tiltErr,GPSErr,fix_par,niter = list_pickle
+elif len(list_pickle) == 20: 
+    nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0,bounds,bndtiltconst,bndGPSconst,bndtimeconst,tiltErr,GPSErr,fix_par,niter,a_parameter = list_pickle
+
 x,y,ls,ld,mu,rhog,const,S,Nmax,tiltErr,GPSErr = fix_par
 
 dtiltErr = 0
 Nmax = 40
 filename = 'progress_temp.h5'
+#Getting sampler info
+reader = emcee.backends.HDFBackend(pathgg + 'progress_temp.h5', read_only=True)
+nwalkers,ndim = reader.shape
+backend = emcee.backends.HDFBackend(pathgg + filename)
+sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
+                                   args=(x,y,
+                                    ls,ld,mu,
+                                    rhog,const,S,
+                                    tTilt,tGPS,tx,ty,GPS,
+                                    tiltErr,GPSErr,bounds,bndtimeconst,bndGPSconst,Nmax,locTruth,locErr,nstation), backend = backend)
+
+
 reader = emcee.backends.HDFBackend(pathgg + filename, read_only = True )
 nwalkers,ndim = reader.shape
 samples = reader.get_chain(flat = True)

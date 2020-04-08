@@ -10,7 +10,7 @@ Created on Wed Feb 12 12:39:49 2020
 import matplotlib.pyplot as plt
 import numpy as np
 from TwoChambers_solvers import  *
-
+from main_lib import DirectModelEmcee_inv_debug
 
 rho = 2600
 g = 9.8
@@ -28,7 +28,7 @@ ks = 1e+9
 kd = 1e+9
 #Pressures and friction6
 pt = 15e+6
-taus = 2.5e+6
+taus = 5e+6
 taud = 1e+6
 
 #Cylinder parameters
@@ -84,9 +84,33 @@ for i in range(1,N_cycles + 1):
 ps = np.concatenate((ps)) * taus
 pd = np.concatenate((pd)) * taus
 t = np.concatenate((t)) * tstar
+
+VsExpSamp = np.log10(Vs)
+VdExpSamp = np.log10(Vd)
+kExpSamp = np.log10(ks)
+pspdSamp = taus - taud
+R3Samp = (pt - taus) / (pspdSamp)
+condsSamp = conds
+conddSamp = condd
+rhog = rho * g
+cs = 1
+psInv,pdInv = DirectModelEmcee_inv_debug(t,
+                         VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
+                         ls,ld,pt,mu,
+                         rhog,cs,S)
+
+
+
+
+
+
+
 plt.figure(1)
-plt.plot(t / (3600* 24),(pd -taus)/ 1e+6,'blue')
-plt.plot(t / (3600* 24),(ps-taus)/ 1e+6,'red')
+plt.plot(t / (3600* 24),(pd + taus)/ 1e+6,'bo')
+plt.plot(t / (3600* 24),(pdInv)/ 1e+6,'co')
+#plt.plot(t / (3600* 24),(ps + taus)/ 1e+6,'red')
+#plt.plot(t / (3600* 24),(psInv)/ 1e+6,'orange')
+
 plt.ylabel('Pressure deep chamber [MPa]')
 plt.xlabel('Time [Days]')
 plt.legend(['With Piston collapse, not feeding eruption','Without piston collapse,feeding'])

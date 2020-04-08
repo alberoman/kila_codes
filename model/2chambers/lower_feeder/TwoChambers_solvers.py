@@ -84,7 +84,7 @@ def system_2chambers(w0,par,pslip,tslip,tsl_seed):
     r3,t1,phi,a,b,c,d = par
     #tslip = optimize.newton(ps_analytic_root, tsl_seed, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
     tslip = optimize.brentq(pd_analytic_root,0,1e+7, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
-    tsegment = np.linspace(0,tslip,30)
+    tsegment = np.linspace(0,tslip,20)
     pssegment = ps_analytic(tsegment,r3,t1,phi,a,b,c,d,pd0,ps0)
     pdsegment = pd_analytic(tsegment,r3,t1,phi,a,b,c,d,pd0,ps0)
     psend = pssegment[-1]
