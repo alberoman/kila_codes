@@ -58,15 +58,15 @@ def TwoChambers_UF_timein(w0,par,pslip,tslip,time,ps,pd,t_x,x_data,N):
     return tslip,ps,pd,pdend,x_data
 
 def DirectModelEmcee_inv_UF(tOrigTilt,tOrigGPS,
-                         offtimeSamp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
+                         offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                          VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
                          Xst,Yst,
                          ls,ld,mu,
                          rhog,cs,S,nstation):
 
     
-    tOrigTilt = tOrigTilt + offtimeSamp
-    tOrigGPS = tOrigGPS + offtimeSamp
+    tOrigTilt = tOrigTilt 
+    tOrigGPS = tOrigGPS 
     
     VsSamp = 10**VsExpSamp
     VdSamp  = 10**VdExpSamp
@@ -130,15 +130,15 @@ def DirectModelEmcee_inv_UF(tOrigTilt,tOrigGPS,
     return txMod,tyMod,gpsMod#,dtxMod, dtyMod
 
 def DirectModelEmcee_inv_UF_debug(tOrigTilt,tOrigGPS,
-                         offtimeSamp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
+                         offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                          VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
                          Xst,Yst,
                          ls,ld,mu,
                          rhog,cs,S,nstation):
 
     
-    tOrigTilt = tOrigTilt + offtimeSamp
-    tOrigGPS = tOrigGPS + offtimeSamp
+    tOrigTilt = tOrigTilt 
+    tOrigGPS = tOrigGPS
     
     VsSamp = 10**VsExpSamp
     VdSamp  = 10**VdExpSamp
@@ -207,11 +207,11 @@ def log_likelihood_UF(param,
                    rhog,const,S,
                    tTilt,tGPS,txObs,tyObs,GPSObs,
                    tiltErr,GPSErr,nstation):
-    offtimeSamp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+    offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
     offxSamp = np.array([offx1])
     offySamp = np.array([offy1])
     txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
-                                              offtimeSamp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
+                                              offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                                               VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
                                               xstation,ystation,
                                               ls,ld,mu,
@@ -225,15 +225,15 @@ def log_likelihood_UF(param,
      
     return liketilt + likeGPS
 
-def log_prior_UF(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTr,locEr,Nobs):
-   offtimeSamp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+def log_prior_UF(param,S,rhog,bounds,bndGPSconst,locTr,locEr):
+   offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
    kSamp = 10**kExpSamp
    VsSamp= 10**VsExpSamp
    VdSamp = 10**VdExpSamp
    R1Samp = rhog * VsSamp /(kSamp*S)
    offs = np.array([offx1,offy1,])
-   #if bounds[0,0] < VsExpSamp < bounds[0,1] and bounds[1,0] < VdExpSamp < bounds[1,1] and bounds[2,0] < kExpSamp < bounds[2,1] and bounds[3,0] < R5ExpSamp < bounds[3,1] and 2* R1Samp* (Nobs -5) * (1 - R5Samp) / (R1Samp +1) +1   < R3Samp < 2* R1Samp* (Nobs + 30) * (1 - R5Samp) / (R1Samp +1) +1 and bounds[5,0] < condsSamp < bounds[5,1] and bounds[6,0] < conddSamp < bounds[6,1] and all(np.abs(offs)<3e+3) and  0 < offGPSSamp < bndGPSconst   and 0 < offtimeSamp < bndtimeconst and 4 < deltax < 10:  
-   if bounds[0,0] < VsExpSamp < bounds[0,1] and bounds[1,0] < VdExpSamp < bounds[1,1] and bounds[2,0] < kExpSamp < bounds[2,1] and rhog * (1 + R1Samp) * bounds[3,0] / (2 * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[3,1] / (2 * R1Samp) and  bounds[4,0] * 2 * R1Samp / (1 + R1Samp) < R3Samp < bounds[4,1] * 2 * R1Samp / (1 + R1Samp) and bounds[5,0] < condsSamp < bounds[5,1] and bounds[6,0] < conddSamp < bounds[6,1] and all(np.abs(offs)<3e+3) and  -bndGPSconst < offGPSSamp < bndGPSconst   and 0 < offtimeSamp < bndtimeconst:                         
+   #if bounds[0,0] < VsExpSamp < bounds[0,1] and bounds[1,0] < VdExpSamp < bounds[1,1] and bounds[2,0] < kExpSamp < bounds[2,1] and bounds[3,0] < R5ExpSamp < bounds[3,1] and 2* R1Samp* (Nobs -5) * (1 - R5Samp) / (R1Samp +1) +1   < R3Samp < 2* R1Samp* (Nobs + 30) * (1 - R5Samp) / (R1Samp +1) +1 and bounds[5,0] < condsSamp < bounds[5,1] and bounds[6,0] < conddSamp < bounds[6,1] and all(np.abs(offs)<3e+3) and  0 < offGPSSamp < bndGPSconst   and  4 < deltax < 10:  
+   if bounds[0,0] < VsExpSamp < bounds[0,1] and bounds[1,0] < VdExpSamp < bounds[1,1] and bounds[2,0] < kExpSamp < bounds[2,1] and rhog * (1 + R1Samp) * bounds[3,0] / (2 * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[3,1] / (2 * R1Samp) and  bounds[4,0] * 2 * R1Samp / (1 + R1Samp) < R3Samp < bounds[4,1] * 2 * R1Samp / (1 + R1Samp) and bounds[5,0] < condsSamp < bounds[5,1] and bounds[6,0] < conddSamp < bounds[6,1] and all(np.abs(offs)<3e+3) and  -bndGPSconst < offGPSSamp < bndGPSconst:                         
        logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
        logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
        logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[2]))-0.5*(dsSamp-locTr[2])**2/locEr[2]**2
@@ -248,9 +248,9 @@ def log_probability_UF(param,
                     ls,ld,mu,
                     rhog,const,S,
                     tTilt,tGPS,tx,ty,GPS,
-                    tiltErr,GPSErr,bounds,bndtimeconst,bndGPSconst,Nmax,locTruth,locErr,nstation):
+                    tiltErr,GPSErr,bounds,bndGPSconst,locTruth,locErr,nstation):
     
-    lp = log_prior_UF(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTruth,locErr,Nmax)
+    lp = log_prior_UF(param,S,rhog,bounds,bndGPSconst,locTruth,locErr)
     if not np.isfinite(lp):
         return -np.inf
     return lp + log_likelihood_UF(param,
@@ -258,4 +258,41 @@ def log_probability_UF(param,
                                ls,ld,mu,
                                rhog,const,S,
                                tTilt,tGPS,tx,ty,GPS,
-                               tiltErr,GPSErr,nstation)   
+                               tiltErr,GPSErr,nstation)
+
+def walkers_init(nwalkers,ndim,bounds,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,Nst):
+    pos = np.zeros((nwalkers*10,ndim)) 
+    initial_rand = np.ones(ndim)
+    for i in range(len(bounds)):
+        pos[:,i] = np.random.uniform(low = bounds[i][0],high = bounds[i][1],size = nwalkers * 10)
+    R1Initial = rhog * 10**pos[:,0] /(10**pos[:,2] * S)
+    lower =  rhog * (1 + R1Initial) * bounds[3,0] / (2 * R1Initial)
+    upper =  rhog * (1 + R1Initial) * bounds[3,1] / (2 * R1Initial)
+    pos[:,3] = np.random.uniform(low = lower,high = upper, size = nwalkers * 10)
+    ind = pos[:,3] < 5e+7
+    R1Initial = R1Initial[ind]
+    pos = pos[ind,:]
+    ind = np.random.uniform(len(pos),size = nwalkers)
+    ind = ind.astype(int)
+    pos = pos[ind,:]
+    R1Initial = R1Initial[ind]
+    lower = bounds[4,0] * 2 * R1Initial / (1 + R1Initial)
+    upper = bounds[4,1] * 2 * R1Initial / (1 + R1Initial)
+    pos[:,4] = np.random.uniform(low = lower,high = upper, size = nwalkers)
+    
+    locs = np.zeros((nwalkers,6))
+    for i in range(len(locTruth)):
+        locs[:,i] = np.random.normal(loc = locTruth[i], scale =locErr[i],size = nwalkers)
+    pos = np.concatenate((locs,pos),axis = 1)
+    
+    offtilt = np.zeros((nwalkers, Nst * 2))
+    
+    for i in range(Nst * 2):
+        offtilt[:,i] = np.random.uniform(low = -bndtiltconst, high = bndtiltconst, size =nwalkers)
+    pos = np.concatenate((offtilt,pos),axis = 1)
+    
+    offsGPS = np.random.uniform(low = -bndGPSconst , high = 0,size = (nwalkers,1))
+    pos = np.concatenate((offsGPS,pos),axis = 1 )
+
+    nwalkers, ndim = pos.shape
+    return pos,nwalkers,ndim

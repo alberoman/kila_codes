@@ -39,9 +39,10 @@ def format_gps(A):
     uz = np.array(uz)
     return t,d,uz
 
-def preparation_UF(list_station,date):
-    
-    stations = pickle.load(open('../../../../tilt/tilt_dictionary_01may.pickle','rb'))
+def preparation_UF(list_station,date,factor):
+    path_data = '../../../../../data/'
+
+    stations = pickle.load(open(path_data + 'tilt_dictionary_01may.pickle','rb'))
     if date == '06-16-2018':
         t0 = 736861.85 # This is night of 06/16/2018
     else:
@@ -121,9 +122,8 @@ def preparation_UF(list_station,date):
     '''
     Prep GPS 
     '''
-    path_GPS = '../../../../GPS/'
     gps = 'CALS.csv'
-    data = read_csv(path_GPS + gps)
+    data = read_csv(path_data+ 'GPS/' + gps)
     time,date,disp = format_gps(data)
     date_new = []
     for line in date:
@@ -141,9 +141,8 @@ def preparation_UF(list_station,date):
     '''
     Source locations from sar
     '''
-    pathgg_results = '../../../sar/results/2mogi/'
     filename = 'Mogi_Metropolis_100000_2mogi.pickle'
-    results =pickle.load(open(pathgg_results + filename,'rb'))
+    results =pickle.load(open(path_data + filename,'rb'))
     panda_trace = pm.backends.tracetab.trace_to_dataframe(results['trace'])
     dde = panda_trace.mean()['depthSource2']
     xde = panda_trace.mean()['xSource2']
@@ -163,6 +162,7 @@ def preparation_UF(list_station,date):
     
     locTruth =np.array([xsh,ysh,dsh,xde,yde,dde])
     locErr =np.array([xshErr,yshErr,dshErr,xdeErr,ydeErr,ddeErr])
+    locErr = locErr * factor
     tx = - tx
     ty =  -ty
     GPS = -GPS

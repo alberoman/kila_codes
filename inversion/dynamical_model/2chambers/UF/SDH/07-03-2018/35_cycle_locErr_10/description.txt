@@ -1,0 +1,1 @@
+35 cycle constraints dx between 3-4 meters and locErr x10

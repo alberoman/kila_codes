@@ -1,0 +1,1 @@
+45 cycle max, sx piston 3-4, sigma tilt 10 microrad, get rid of time constant. time it is take as it is with no offset!

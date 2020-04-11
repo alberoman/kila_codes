@@ -13,9 +13,9 @@ from main_lib_UF import *
 import os
 import corner
 from shutil import copyfile
-discardval = 1
+discardval = 10000
 thinval = 1
-pathgg = 'SDH/07-03-2018/35_cycle_move_20/'
+pathgg = 'UWD/07-03-2018//45_cycle_locErr_5_sigma_10_notimeoffset_noGPS/'
 copyfile(pathgg + 'progress.h5', pathgg + 'progress_temp.h5' )
 pathfig = pathgg + 'figs/'
 
@@ -48,22 +48,25 @@ dtiltErr = 0
 Nmax = 40
 filename = 'progress_temp.h5'
 #Getting sampler info
-reader = emcee.backends.HDFBackend(pathgg + 'progress_temp.h5', read_only=True)
-nwalkers,ndim = reader.shape
-backend = emcee.backends.HDFBackend(pathgg + filename)
-sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
-                                   args=(x,y,
-                                    ls,ld,mu,
-                                    rhog,const,S,
-                                    tTilt,tGPS,tx,ty,GPS,
-                                    tiltErr,GPSErr,bounds,bndtimeconst,bndGPSconst,Nmax,locTruth,locErr,nstation), backend = backend)
-
+#nwalkers,ndim = reader.shape
+#backend = emcee.backends.HDFBackend(pathgg + filename)
+#sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
+#                                   args=(x,y,
+#                                    ls,ld,mu,
+#                                    rhog,const,S,
+#                                    tTilt,tGPS,tx,ty,GPS,
+#                                    tiltErr,GPSErr,bounds,bndtimeconst,bndGPSconst,Nmax,locTruth,locErr,nstation), backend = backend)
 
 reader = emcee.backends.HDFBackend(pathgg + filename, read_only = True )
 nwalkers,ndim = reader.shape
 samples = reader.get_chain(flat = True)
 parmax = samples[np.argmax(reader.get_log_prob(flat = True))]
-offtime,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
+if len(parmax)==16:
+    offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
+    offtime = 0
+elif len(parmax)==17:
+    offtime,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
+
 offxSamp = np.array([offx1])
 offySamp = np.array([offy1])
 txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
@@ -77,20 +80,23 @@ txmodlist = []
 tymodlist = []
 GPSmodlist = []
 for parameters in samples[np.random.randint(len(samples), size = 100)]:
-        #offtimeSamp,offGPSSamp,
-        offtime,offGPS,offx1,offy1,xsh,ysh,dsh,xde,yde,dde,Vs_exp,Vd_exp,k_exp,R5exp,R3,conds,condd = parameters
-        offx = np.array([offx1,])
-        offy = np.array([offy1,])
-        txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
-                        offtime,offGPS,offx,offy,xsh,ysh,dsh,xde,yde,dde,
-                        Vs_exp,Vd_exp,k_exp,R5exp,R3,conds,condd,
+    if len(parmax)==16:
+        offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parameters
+        offtime = 0
+    elif len(parmax)==17:
+        offtime,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parameters
+    offx = np.array([offx1,])
+    offy = np.array([offy1,])
+    txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
+                        offtime,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
+                        VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                         x,y,
                         ls,ld,mu,
                         rhog,const,S,nstation)
         
-        txmodlist.append(txMod)
-        tymodlist.append(tyMod)
-        GPSmodlist.append(GPSMod)
+    txmodlist.append(txMod)
+    tymodlist.append(tyMod)
+    GPSmodlist.append(GPSMod)
         
 txspread = np.std(txmodlist,axis =0)
 txmed = np.median(txmodlist,axis =0)
@@ -122,12 +128,6 @@ plt.fill_between(tGPS/ (3600 * 24),GPSmed - GPSspread,GPSmed + GPSspread,color='
 plt.xlabel('Time [Days]')
 plt.ylabel('Piston displacement [m]')
 plt.savefig(pathfig + 'GPS.pdf')
-
-samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
-plt.figure()
-corner.corner(samples)
-plt.savefig(pathfig + 'hist.pdf')
-
 samples = reader.get_chain(thin = thinval,discard = discardval)
 fig, axes = plt.subplots(ndim, figsize=(10, 7), sharex=True)
 for i in range(ndim):
@@ -136,5 +136,12 @@ for i in range(ndim):
     ax.set_xlim(0, len(samples))
     ax.yaxis.set_label_coords(-0.1, 0.5)
 plt.savefig(pathfig + 'chains.pdf')
+plt.close('all')
+samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
+plt.figure()
+#corner.corner(samples)
+#plt.savefig(pathfig + 'hist.pdf')
+plt.close('all')
+
 os.remove(pathgg + 'progress_temp.h5')
 

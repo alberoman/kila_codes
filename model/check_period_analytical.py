@@ -11,14 +11,14 @@ import matplotlib.pyplot as plt
 from solvers_piston import *
 
 exp  = np.linspace(-4,0)
-R1 = 0.01
+R1 = 0.1
 R2 = 1e-5
 R3 = 3.0
 R5 = 0.3
 R4 = -1
 x0 = 0
 
-DeltaP,x,velocity,N_cycle,time,t_slip,period_stick_slip,dx_slip,slip_duration,q_out,vol_out = isostatic_piston(x0,R1,R2,R3,R4,R5)
+pnum,xnum,vnum,N_cyclenum,tnum,tslipnum,dtslipnum,dxslipnum,dtslipdur = isostatic_piston(x0,R1,R2,R3,R4,R5)
 
 sticks = period_stick_slip - slip_duration 
 n = np.linspace(1,len(period_stick_slip),len(period_stick_slip))
