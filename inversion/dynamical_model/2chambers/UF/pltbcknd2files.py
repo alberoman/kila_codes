@@ -21,9 +21,9 @@ from main_lib_UF import *
 import os
 import corner
 from shutil import copyfile
-discardval = 10000
+discardval = 1000
 thinval = 1
-pathgg = '../../../../../reults/UF/UWD/07-03-2018/blblblblblb/'
+pathgg = '../../../../../results/UF/UWD/07-03-2018/locErr5_condd7-20/'
 copyfile(pathgg + 'progress.h5', pathgg + 'progress_temp.h5' )
 pathfig = pathgg + 'figs/'
 

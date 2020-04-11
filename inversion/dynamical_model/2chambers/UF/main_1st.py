@@ -18,10 +18,10 @@ from multiprocessing import Pool
 import os
 import sys
 np.random.seed(1234567284)
-path_results = '../../../../../reults/'
+path_results = '../../../../../results/'
 
     
-pathrun = 'blblblblblb'
+pathrun = 'initial_press'
 stations  = ['UWD']
 date = '07-03-2018'
 model_type = 'UF'
@@ -36,6 +36,7 @@ def parameters_init():
     bounds = np.array([[+8,+11],[+8,+11],[+8,+10],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,10]])
     bndtiltconst = 500
     bndGPSconst = 200
+    bnddeltaP0 = 6e+7
     tiltErr = 1e-5
     GPSErr = 1e-2
     locErrFact = 5
@@ -59,7 +60,7 @@ def parameters_init():
     const = -9. /(4 * 3.14) * (1 - poisson) / lame
     S = 3.14 * Rcyl**2 
     rhog = rho * g
-    return bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog
+    return bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bnddeltaP0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog
 
 
 
@@ -77,9 +78,7 @@ pathtrunk = pathrunk + '/' + date + '/'
 pathgg = pathtrunk + pathrun
 pathgg  =  pathgg + '/'
 pathgg = path_results + pathgg
-f = open(path_results+'dir_current_run.txt','w')
-f.write(os.path.abspath(pathgg))
-f.close()
+
 
 if not os.path.exists(pathgg):
     os.makedirs(pathgg)
@@ -89,6 +88,10 @@ if not os.path.exists(pathgg):
     f.close()
 else:
     print('Directory exists! CHeck that everything is ok!')
+    
+f = open(path_results+'dir_current_run.txt','w')
+f.write(os.path.abspath(pathgg))
+f.close()
 if  os.path.isfile(pathgg + 'progress.h5'):
     Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0= pickle.load(open(pathgg + 'data.pickle','rb'))
     bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = pickle.load(open(pathgg + 'parameters.pickle','rb'))
@@ -114,11 +117,11 @@ if  os.path.isfile(pathgg + 'progress.h5'):
 
 else:
     niter = input('How many iteration you want to run? ')
-    bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = parameters_init()
+    bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = parameters_init()
     Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0 = preparation_UF(stations,date,locErrFact)
-    pos,nwalkers,ndim = walkers_init(nwalkers,ndim,bounds,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,Nst)
+    pos,nwalkers,ndim = walkers_init(nwalkers,ndim,bounds,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,bndp0,Nst)
     pickle.dump((Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0),open(pathgg + 'data.pickle','wb'))
-    pickle.dump((bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog),open(pathgg + 'parameters.pickle','wb'))
+    pickle.dump((bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog),open(pathgg + 'parameters.pickle','wb'))
     filename = pathgg + "progress.h5"
     backend = emcee.backends.HDFBackend(filename)
     
@@ -130,7 +133,7 @@ else:
                                             ls,ld,mu,
                                             rhog,const,S,
                                             tTilt,tGPS,tx,ty,GPS,
-                                            tiltErr,GPSErr,bounds,bndGPSconst,locTruth,locErr,nstation),moves = [move], backend = backend, pool = pool)
+                                            tiltErr,GPSErr,bounds,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation),moves = [move], backend = backend, pool = pool)
        
         print('Running main sampling')
         sampler.run_mcmc(pos,niter, progress = True,thin = thin)
