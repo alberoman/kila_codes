@@ -21,9 +21,9 @@ from main_lib_UF import *
 import os
 import corner
 from shutil import copyfile
-discardval = 1000
+discardval = 10
 thinval = 1
-pathgg = '../../../../../results/UF/UWD/07-03-2018/locErr5_condd7-20/'
+pathgg = '../../../../../results/UF/UWD/07-03-2018/test/'
 copyfile(pathgg + 'progress.h5', pathgg + 'progress_temp.h5' )
 pathfig = pathgg + 'figs/'
 
@@ -44,28 +44,28 @@ except:
 np.random.seed(1234)
 
 Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0= pickle.load(open(pathgg + 'data.pickle','rb'))
-bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = pickle.load(open(pathgg + 'parameters.pickle','rb'))
+bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = pickle.load(open(pathgg + 'parameters.pickle','rb'))
 filename = 'progress_temp.h5'
 #Getting sampler info
 #nwalkers,ndim = reader.shape
 #backend = emcee.backends.HDFBackend(pathgg + filename)
 #sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
 #                                   args=(x,y,
-#                                    ls,ld,mu,
-#                                    rhog,const,S,
-#                                    tTilt,tGPS,tx,ty,GPS,
-#                                    tiltErr,GPSErr,bounds,bndtimeconst,bndGPSconst,Nmax,locTruth,locErr,nstation), backend = backend)
+#                                            ls,ld,mu,
+#                                            rhog,const,S,
+#                                            tTilt,tGPS,tx,ty,GPS,
+#                                            tiltErr,GPSErr,bounds,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation), backend = backend)
 
 reader = emcee.backends.HDFBackend(pathgg + filename, read_only = True )
 nwalkers,ndim = reader.shape
 samples = reader.get_chain(flat = True)
 parmax = samples[np.argmax(reader.get_log_prob(flat = True))]
-offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
+deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
 
 offxSamp = np.array([offx1])
 offySamp = np.array([offy1])
 txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
-                                              offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
+                                              deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                                               VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                                               x,y,
                                               ls,ld,mu,
@@ -76,12 +76,12 @@ tymodlist = []
 GPSmodlist = []
 for parameters in samples[np.random.randint(len(samples), size = 100)]:
     
-    offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parameters
+    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parameters
 
     offx = np.array([offx1,])
     offy = np.array([offy1,])
     txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
-                        offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
+                        deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                         VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                         x,y,
                         ls,ld,mu,
@@ -103,6 +103,10 @@ plt.plot(tTilt / (3600 * 24),tx,'b')
 plt.plot(tTilt / (3600 * 24),txMod,'r')
 plt.fill_between(tTilt /(3600 * 24),txmed-txspread,txmed + txspread,color='grey',alpha=0.5)
 plt.xlabel('Time [Days]')
+
+
+
+
 plt.ylabel('Tilt-x' )
 
 plt.savefig(pathfig + 'tx.pdf')
