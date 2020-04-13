@@ -13,7 +13,7 @@ import numpy as np
 from scipy.optimize import minimize
 import emcee
 import pickle
-from preparedata_UF import preparation_UF
+from preparedata import preparation
 from multiprocessing import Pool
 import os
 import sys
@@ -33,7 +33,7 @@ def parameters_init():
 
     Ncycmin = 20
     Ncycmax = 60
-    bounds = np.array([[+8,+11],[+8,+11],[+8,+10],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,10]])
+    bounds = np.array([[+8,+11],[+8,+11],[+8,+11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,10]])
     bndtiltconst = 1000
     bndGPSconst = 200
     bnddeltaP0 = 4e+7
@@ -105,12 +105,20 @@ if  os.path.isfile(pathgg + 'progress.h5'):
     backend = emcee.backends.HDFBackend(filename)
     move = emcee.moves.StretchMove(a=a_parameter)
     with Pool() as pool:
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
-                                       args=(x,y,
-                                            ls,ld,mu,
-                                            rhog,const,S,
-                                            tTilt,tGPS,tx,ty,GPS,
-                                            tiltErr,GPSErr,bounds,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation),moves = [move], backend = backend, pool = pool)
+        if model_type == 'UF':
+            sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
+                                            args=(x,y,
+                                                  ls,ld,mu,
+                                                  rhog,const,S,
+                                                  tTilt,tGPS,tx,ty,GPS,
+                                                  tiltErr,GPSErr,bounds,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation),moves = [move], backend = backend, pool = pool)
+        elif model_tyoe =='LF':
+            sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_LF,
+                                            args=(x,y,
+                                                  ls,ld,mu,
+                                                  rhog,const,S,
+                                                  tTilt,tGPS,tx,ty,GPS,
+                                                  tiltErr,GPSErr,bounds,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation),moves = [move], backend = backend, pool = pool)
         sampler.run_mcmc(None, moreiter, progress=True,thin = thin)
 
 
@@ -118,17 +126,23 @@ if  os.path.isfile(pathgg + 'progress.h5'):
 else:
     niter = input('How many iteration you want to run? ')
     bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = parameters_init()
-    Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0 = preparation_UF(stations,date,locErrFact)
-    pos,nwalkers,ndim = walkers_init(nwalkers,ndim,bounds,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,bndp0,Nst)
+    Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0 = preparation(stations,date,locErrFact,model_type)
+    pos,nwalkers,ndim = walkers_init(nwalkers,ndim,bounds,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,bndp0,Nst,model_type)
     pickle.dump((Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0),open(pathgg + 'data.pickle','wb'))
     pickle.dump((bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog),open(pathgg + 'parameters.pickle','wb'))
     filename = pathgg + "progress.h5"
     backend = emcee.backends.HDFBackend(filename)
-    
     move = emcee.moves.StretchMove(a=a_parameter)
-    
     with Pool() as pool:
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
+        if model_type == 'UF':
+            sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
+                                        args=(x,y,
+                                            ls,ld,mu,
+                                            rhog,const,S,
+                                            tTilt,tGPS,tx,ty,GPS,
+                                            tiltErr,GPSErr,bounds,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation),moves = [move], backend = backend, pool = pool)
+        elif model_type == 'LF':
+            sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_LF,
                                         args=(x,y,
                                             ls,ld,mu,
                                             rhog,const,S,

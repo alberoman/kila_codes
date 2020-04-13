@@ -39,7 +39,7 @@ def format_gps(A):
     uz = np.array(uz)
     return t,d,uz
 
-def preparation_UF(list_station,date,factor):
+def preparation(list_station,date,factor,mt):
     path_data = '../../../../../data/'
 
     stations = pickle.load(open(path_data + 'tilt_dictionary_01may.pickle','rb'))
@@ -144,25 +144,45 @@ def preparation_UF(list_station,date,factor):
     filename = 'Mogi_Metropolis_100000_2mogi.pickle'
     results =pickle.load(open(path_data + filename,'rb'))
     panda_trace = pm.backends.tracetab.trace_to_dataframe(results['trace'])
-    dde = panda_trace.mean()['depthSource2']
-    xde = panda_trace.mean()['xSource2']
-    yde = panda_trace.mean()['ySource2']
-    
-    dsh = panda_trace.mean()['depthSource1']
-    xsh = panda_trace.mean()['xSource1']
-    ysh = panda_trace.mean()['ySource1']
-    
-    ddeErr = panda_trace.std()['depthSource2']
-    xdeErr = panda_trace.std()['xSource2']
-    ydeErr = panda_trace.std()['ySource2']
-    
-    dshErr = panda_trace.std()['depthSource1']
-    xshErr = panda_trace.std()['xSource1']
-    yshErr = panda_trace.std()['ySource1']
+    if mt == 'UF':
+        dde = panda_trace.mean()['depthSource2']
+        xde = panda_trace.mean()['xSource2']
+        yde = panda_trace.mean()['ySource2']
+        
+        dsh = panda_trace.mean()['depthSource1']
+        xsh = panda_trace.mean()['xSource1']
+        ysh = panda_trace.mean()['ySource1']
+        
+        ddeErr = panda_trace.std()['depthSource2']
+        xdeErr = panda_trace.std()['xSource2']
+        ydeErr = panda_trace.std()['ySource2']
+        
+        dshErr = panda_trace.std()['depthSource1']
+        xshErr = panda_trace.std()['xSource1']
+        yshErr = panda_trace.std()['ySource1']
+    elif mt == 'LF':
+        dde = panda_trace.mean()['depthSource1']
+        xde = panda_trace.mean()['xSource1']
+        yde = panda_trace.mean()['ySource1']
+        
+        dsh = panda_trace.mean()['depthSource2']
+        xsh = panda_trace.mean()['xSource2']
+        ysh = panda_trace.mean()['ySource2']
+        
+        ddeErr = panda_trace.std()['depthSource1']
+        xdeErr = panda_trace.std()['xSource1']
+        ydeErr = panda_trace.std()['ySource1']
+        
+        dshErr = panda_trace.std()['depthSource2']
+        xshErr = panda_trace.std()['xSource2']
+        yshErr = panda_trace.std()['ySource2']
     
     locTruth =np.array([xsh,ysh,dsh,xde,yde,dde])
     locErr =np.array([xshErr,yshErr,dshErr,xdeErr,ydeErr,ddeErr])
+    
+
     locErr = locErr * factor
+    
     tx = - tx
     ty =  -ty
     GPS = -GPS

@@ -21,7 +21,7 @@ from main_lib_UF import *
 import os
 import corner
 from shutil import copyfile
-discardval = 10
+discardval = 10000
 thinval = 1
 pathgg = '../../../../../results/UF/UWD/07-03-2018/test/'
 copyfile(pathgg + 'progress.h5', pathgg + 'progress_temp.h5' )

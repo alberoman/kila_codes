@@ -227,14 +227,12 @@ def log_likelihood_UF(param,
 
 def log_prior_UF(param,S,rhog,bounds,bndGPSconst,bndtiltconst,bndp0,locTr,locEr):
    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
-   #offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
-
    kSamp = 10**kExpSamp
    VsSamp= 10**VsExpSamp
    VdSamp = 10**VdExpSamp
    R1Samp = rhog * VsSamp /(kSamp*S)
    offs = np.array([offx1,offy1,])
-   if bounds[0,0] < VsExpSamp < bounds[0,1] and bounds[1,0] < VdExpSamp < bounds[1,1] and bounds[2,0] < kExpSamp < bounds[2,1] and rhog * (1 + R1Samp) * bounds[3,0] / (2 * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[3,1] / (2 * R1Samp) and  bounds[4,0] * 2 * R1Samp / (1 + R1Samp) < R3Samp < bounds[4,1] * 2 * R1Samp / (1 + R1Samp) and bounds[5,0] < condsSamp < bounds[5,1] and bounds[6,0] < conddSamp < bounds[6,1] and all(np.abs(offs)<bndtiltconst) and  -bndGPSconst < offGPSSamp < bndGPSconst:# and 0 < deltap0Samp < bndp0:                         
+   if bounds[0,0] < VsExpSamp < bounds[0,1] and bounds[1,0] < VdExpSamp < bounds[1,1] and bounds[2,0] < kExpSamp < bounds[2,1] and rhog * (1 + R1Samp) * bounds[3,0] / (2 * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[3,1] / (2 * R1Samp) and  bounds[4,0] * 2 * R1Samp / (1 + R1Samp) < R3Samp < bounds[4,1] * 2 * R1Samp / (1 + R1Samp) and bounds[5,0] < condsSamp < bounds[5,1] and bounds[6,0] < conddSamp < bounds[6,1] and all(np.abs(offs)<bndtiltconst) and  -bndGPSconst < offGPSSamp < bndGPSconst and 0 < deltap0Samp < bndp0:                         
        logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
        logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
        logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[2]))-0.5*(dsSamp-locTr[2])**2/locEr[2]**2
@@ -243,6 +241,26 @@ def log_prior_UF(param,S,rhog,bounds,bndGPSconst,bndtiltconst,bndp0,locTr,locEr)
        logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[5]))-0.5*(ddSamp-locTr[5])**2/locEr[5]**2
        return logprob
    return -np.inf
+
+def log_prior_LF(param,S,rhog,bounds,bndGPSconst,bndtiltconst,bndp0,locTr,locEr):
+   deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+   kSamp = 10**kExpSamp
+   VsSamp= 10**VsExpSamp
+   VdSamp = 10**VdExpSamp
+   R1Samp = rhog * VdSamp /(kSamp*S)
+   offs = np.array([offx1,offy1,])
+   if bbounds[0,0] < VsExpSamp < bounds[0,1] and bounds[1,0] < VdExpSamp < bounds[1,1] and bounds[2,0] < kExpSamp < bounds[2,1] and rhog * (1 + R1Samp) * bounds[3,0] / (2 * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[3,1] / (2 * R1Samp) and  bounds[4,0] * 2 * R1Samp / (1 + R1Samp) < R3Samp < bounds[4,1] * 2 * R1Samp / (1 + R1Samp) and bounds[5,0] < condsSamp < bounds[5,1] and bounds[6,0] < conddSamp < bounds[6,1] and all(np.abs(offs)<bndtiltconst) and  -bndGPSconst < offGPSSamp < bndGPSconst and 0 < deltap0Samp < bndp0:
+       logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
+       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
+       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[2]))-0.5*(dsSamp-locTr[2])**2/locEr[2]**2
+       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[3]))-0.5*(xdSamp-locTr[3])**2/locEr[3]**2
+       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[4]))-0.5*(ydSamp-locTr[4])**2/locEr[4]**2
+       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[5]))-0.5*(ddSamp-locTr[5])**2/locEr[5]**2
+       return logprob
+   return -np.inf
+
+
+
 
 def log_probability_UF(param,
                     xstation,ystation,
@@ -261,16 +279,37 @@ def log_probability_UF(param,
                                tTilt,tGPS,tx,ty,GPS,
                                tiltErr,GPSErr,nstation)
 
-def walkers_init(nwalkers,ndim,bounds,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,bndp0,Nst):
+    
+def log_probability_LF(param,
+                    xstation,ystation,
+                    ls,ld,mu,
+                    rhog,const,S,
+                    tTilt,tGPS,tx,ty,GPS,
+                    tiltErr,GPSErr,bounds,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation):
+    
+    lp = log_prior_LF(param,S,rhog,bounds,bndtimeconst,bndGPSconst,locTruth,locErr,Nmax,pt)
+    if not np.isfinite(lp):
+        return -np.inf
+    return lp + log_likelihood_LF(param,
+                               xstation,ystation,
+                               ls,ld,pt,mu,
+                               rhog,const,S,
+                               tTilt,tGPS,tx,ty,GPS,
+                               tiltErr,GPSErr,nstation)   
+
+def walkers_init(nwalkers,ndim,bounds,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,bndp0,Nst,mt):
     pos = np.zeros((nwalkers*10,ndim)) 
     initial_rand = np.ones(ndim)
     for i in range(len(bounds)):
         pos[:,i] = np.random.uniform(low = bounds[i][0],high = bounds[i][1],size = nwalkers * 10)
-    R1Initial = rhog * 10**pos[:,0] /(10**pos[:,2] * S)
+    if mt == 'UF':
+        R1Initial = rhog * 10**pos[:,0] /(10**pos[:,2] * S)
+    elif mt == 'LF':
+        R1Initial = rhog * 10**pos[:,1] /(10**pos[:,2] * S)
     lower =  rhog * (1 + R1Initial) * bounds[3,0] / (2 * R1Initial)
     upper =  rhog * (1 + R1Initial) * bounds[3,1] / (2 * R1Initial)
     pos[:,3] = np.random.uniform(low = lower,high = upper, size = nwalkers * 10)
-    ind = pos[:,3] < 5e+7
+    ind = pos[:,3] < 3e+7
     R1Initial = R1Initial[ind]
     pos = pos[ind,:]
     ind = np.random.uniform(len(pos),size = nwalkers)
@@ -294,8 +333,11 @@ def walkers_init(nwalkers,ndim,bounds,rhog,S,locTruth,locErr,bndtiltconst,bndGPS
     
     offsGPS = np.random.uniform(low = -bndGPSconst , high = 0,size = (nwalkers,1))
     pos = np.concatenate((offsGPS,pos),axis = 1 )
-    
-    initialp = np.random.uniform(low = 0 , high = bndp0,size = (nwalkers,1))
+    if mt == 'UF':
+        initialp = np.random.uniform(low = 0 , high = bndp0,size = (nwalkers,1))
+    elif mt == 'LF':
+        initialp = np.random.uniform(low = - bndp0 , high = 0,size = (nwalkers,1))
+
     pos = np.concatenate((initialp,pos),axis = 1)
     nwalkers, ndim = pos.shape
     
