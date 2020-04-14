@@ -8,7 +8,7 @@ Created on Fri Feb 14 14:21:02 2020
 
 import matplotlib.pyplot as plt
 import numpy as np
-from main_lib_UF import *
+from main_lib import *
 import numpy as np
 from scipy.optimize import minimize
 import emcee
@@ -18,13 +18,14 @@ from multiprocessing import Pool
 import os
 import sys
 np.random.seed(1234567284)
-path_results = '../../../../../results/'
+path_results = '../../../../results/'
 
     
-pathrun = 'test '
+pathrun = 'test'
+model_type = 'LF'
+
 stations  = ['UWD']
 date = '07-03-2018'
-model_type = 'LF'
 
 def parameters_init():
     #Initialize parameters
@@ -112,7 +113,7 @@ if  os.path.isfile(pathgg + 'progress.h5'):
                                                   rhog,const,S,
                                                   tTilt,tGPS,tx,ty,GPS,
                                                   tiltErr,GPSErr,bounds,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation),moves = [move], backend = backend, pool = pool)
-        elif model_tyoe =='LF':
+        elif model_type =='LF':
             sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_LF,
                                             args=(x,y,
                                                   ls,ld,mu,

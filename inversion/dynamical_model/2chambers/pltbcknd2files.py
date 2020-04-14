@@ -17,17 +17,19 @@ import emcee
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle 
-from main_lib_UF import *
+from main_lib import *
 import os
 import corner
 from shutil import copyfile
-discardval = 100
+discardval = 2000
 thinval = 1
-path_results = '../../../../../results/'
-pathrun = 'test '
+path_results = '../../../../results/'
+
+pathrun = 'test'
+model_type = 'LF'
+
 stations  = ['UWD']
 date = '07-03-2018'
-model_type = 'LF'
 if len(stations) > 1:
     pathtrunk = model_type + '/' + str(len(stations)) + 'st'
 else:
