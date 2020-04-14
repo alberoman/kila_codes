@@ -1,1 +1,0 @@
-this is exactly the same version of 35_cycle_max for UWD, but in this case is for SDH. dx constained between 3-4 Nmax cycle= 35 and time max offset 6 days

@@ -1,1 +1,0 @@
-location uncertainity multiplied by 7.5, used e prior between 8-20m for the conduit radius, reduce magma viscosity to 200

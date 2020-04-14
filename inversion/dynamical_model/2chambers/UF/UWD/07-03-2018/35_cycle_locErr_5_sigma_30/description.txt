@@ -1,1 +1,0 @@
-35 cycles, locErr x5 and sigma tilt is 30 microradians

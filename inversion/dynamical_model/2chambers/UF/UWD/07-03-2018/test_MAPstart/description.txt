@@ -1,1 +1,0 @@
- testing starting from MAP of test, walkers are initialized around 10% of the MAP except for the locations which are drawn from the original normal distribution

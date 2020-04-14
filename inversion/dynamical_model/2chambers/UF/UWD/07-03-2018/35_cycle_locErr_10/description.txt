@@ -1,1 +1,0 @@
-Briefly describe the run: same as 35 cycle (35 cycles constrain on the prior, dx between 3-4 meter time offset 6day max) but with uncertainity on the source location x10  
