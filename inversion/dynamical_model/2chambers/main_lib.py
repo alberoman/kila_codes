@@ -346,20 +346,20 @@ def walkers_init(nwalkers,ndim,bounds,rhog,S,locTruth,locErr,bndtiltconst,bndGPS
     if mt == 'UF':
         R1Initial = rhog * 10**pos[:,0] /(10**pos[:,2] * S)
     elif mt == 'LF':
-        R1Initial = rhog * 10**pos[:,1] /(10**pos[:,2] * S)
-    lower =  rhog * (1 + R1Initial) * bounds[3,0] / (2 * R1Initial)
-    upper =  rhog * (1 + R1Initial) * bounds[3,1] / (2 * R1Initial)
-    pos[:,3] = np.random.uniform(low = lower,high = upper, size = nwalkers * 10)
-    ind = pos[:,3] < 3e+7
+        R1Initial = rhog * 10**pos[:,1] /(10**pos[:,3] * S)
+    lower =  rhog * (1 + R1Initial) * bounds[4,0] / (2 * R1Initial)
+    upper =  rhog * (1 + R1Initial) * bounds[4,1] / (2 * R1Initial)
+    pos[:,4] = np.random.uniform(low = lower,high = upper, size = nwalkers * 10)
+    ind = pos[:,4] < 3e+7
     R1Initial = R1Initial[ind]
     pos = pos[ind,:]
     ind = np.random.uniform(len(pos),size = nwalkers)
     ind = ind.astype(int)
     pos = pos[ind,:]
     R1Initial = R1Initial[ind]
-    lower = bounds[4,0] * 2 * R1Initial / (1 + R1Initial)
-    upper = bounds[4,1] * 2 * R1Initial / (1 + R1Initial)
-    pos[:,4] = np.random.uniform(low = lower,high = upper, size = nwalkers)
+    lower = bounds[5,0] * 2 * R1Initial / (1 + R1Initial)
+    upper = bounds[5,1] * 2 * R1Initial / (1 + R1Initial)
+    pos[:,5] = np.random.uniform(low = lower,high = upper, size = nwalkers)
     
     locs = np.zeros((nwalkers,6))
     for i in range(len(locTruth)):
