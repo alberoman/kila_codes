@@ -23,8 +23,9 @@ import corner
 from shutil import copyfile
 discardval = 1
 thinval = 1
+
 path_results = '../../../../results/'
-pathrun = 'prova prior'
+pathrun = 'test'
 model_type = 'LF'
 
 stations  = ['UWD']

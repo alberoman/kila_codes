@@ -35,11 +35,13 @@ def parameters_init(mt):
 
     Ncycmin = 20
     Ncycmax = 60
-    bounds = np.array([[+8,+11],[+8,+11],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,10]])
+
     if mt == 'UF':
+        bounds = np.array([[+8,10],[+8,+12],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,10]])
         boundsLoc = np.array([[-1000,1000],[1200,2500],[500,1500],[-1500,+1500],[-1500,2500],[2000,4000]])
     elif mt == 'LF':
-        boundsLoc = np.array([[-1500,+1500],[-1500,2500],[2000,4000],[-1000,1000],[1200,2500],[500,1500]])
+        bounds = np.array([[+8,+12],[+8,+10],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,10]])
+        boundsLoc = np.array([[-1000,+1000],[-1000,1000],[2000,5000],[-500,0],[1500,2000],[500,1300]])
 
     bndtiltconst = 1000
     bndGPSconst = 200
