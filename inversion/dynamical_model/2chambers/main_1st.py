@@ -21,7 +21,7 @@ np.random.seed(1234567284)
 path_results = '../../../../results/'
 
     
-pathrun = 'prova_prior'
+pathrun = 'test'
 model_type = 'LF'
 
 stations  = ['UWD']
@@ -103,7 +103,12 @@ f.write(os.path.abspath(pathgg))
 f.close()
 if  os.path.isfile(pathgg + 'progress.h5'):
     Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0= pickle.load(open(pathgg + 'data.pickle','rb'))
-    bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = pickle.load(open(pathgg + 'parameters.pickle','rb'))
+    a = pickle.load(open(pathgg + 'parameters.pickle','rb'))
+    if len(a)== 17:
+        bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = a
+        boundsLoc = 0
+    elf len(a)== 18:
+        bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = a
     reader = emcee.backends.HDFBackend(pathgg + 'progress.h5', read_only=True)
     niter  = reader.iteration
     answer = input('Found past run with ' + str(niter) +' samples. Do you want to continue this run? Enter the number of iteration that additionally you want to do: ')
@@ -138,7 +143,7 @@ else:
     Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0 = preparation(stations,date,locErrFact,model_type)
     pos,nwalkers,ndim = walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,bndp0,Nst,model_type,flaglocation)
     pickle.dump((Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0),open(pathgg + 'data.pickle','wb'))
-    pickle.dump((bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog),open(pathgg + 'parameters.pickle','wb'))
+    pickle.dump((bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog),open(pathgg + 'parameters.pickle','wb'))
     filename = pathgg + "progress.h5"
     backend = emcee.backends.HDFBackend(filename)
     move = emcee.moves.StretchMove(a=a_parameter)
