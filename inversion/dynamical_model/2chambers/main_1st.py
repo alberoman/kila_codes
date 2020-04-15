@@ -21,7 +21,7 @@ np.random.seed(1234567284)
 path_results = '../../../../results/'
 
     
-pathrun = 'prova prior'
+pathrun = 'prova_prior'
 model_type = 'LF'
 
 stations  = ['UWD']
@@ -120,14 +120,14 @@ if  os.path.isfile(pathgg + 'progress.h5'):
                                                   ls,ld,mu,
                                                   rhog,const,S,
                                                   tTilt,tGPS,tx,ty,GPS,
-                                                  tiltErr,GPSErr,bounds,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
+                                                  tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
         elif model_type =='LF':
             sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_LF,
                                             args=(x,y,
                                                   ls,ld,mu,
                                                   rhog,const,S,
                                                   tTilt,tGPS,tx,ty,GPS,
-                                                  tiltErr,GPSErr,bounds,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
+                                                  tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
         sampler.run_mcmc(None, moreiter, progress=True,thin = thin)
 
 
