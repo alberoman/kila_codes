@@ -21,7 +21,7 @@ np.random.seed(1234567284)
 path_results = '../../../../results/'
 
     
-pathrun = 'ciupu'
+pathrun = 'compress'
 model_type = 'LF'
 
 stations  = ['UWD']
@@ -34,7 +34,7 @@ def parameters_init():
 
     Ncycmin = 20
     Ncycmax = 60
-    bounds = np.array([[+8,+11],[+8,+11],[+8,+11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,10]])
+    bounds = np.array([[+8,+11],[+8,+11],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,10]])
     bndtiltconst = 1000
     bndGPSconst = 200
     bnddeltaP0 = 4e+7
