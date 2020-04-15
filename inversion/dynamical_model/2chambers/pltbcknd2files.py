@@ -21,19 +21,21 @@ from main_lib import *
 import os
 import corner
 from shutil import copyfile
-discardval = 50000
+discardval = 1
 thinval = 1
 path_results = '../../../../results/'
-
-pathrun = 'test'
+pathrun = 'prova prior'
 model_type = 'LF'
 
 stations  = ['UWD']
 date = '07-03-2018'
+flaglocation = 'F'      # This is the flag for locations priors, F for Uniform, N for Normal
+
 if len(stations) > 1:
-    pathtrunk = model_type + '/' + str(len(stations)) + 'st'
+    pathtrunk = 'priors' + flaglocation +  '/' + model_type + '/' + str(len(stations)) + 'st'
 else:
-    pathrunk = model_type + '/' + stations[0]
+    pathrunk = 'priors' + flaglocation +  '/' + model_type + '/' + stations[0]
+
 
 
 pathtrunk = pathrunk + '/' + date + '/'
@@ -78,21 +80,21 @@ reader = emcee.backends.HDFBackend(pathgg + filename, read_only = True )
 nwalkers,ndim = reader.shape
 samples = reader.get_chain(flat = True)
 parmax = samples[np.argmax(reader.get_log_prob(flat = True))]
-deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
+deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
 
 offxSamp = np.array([offx1])
 offySamp = np.array([offy1])
 if model_type == 'UF':
     txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_UF(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                                              VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
+                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                                               x,y,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
 elif model_type == 'LF':
     txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_LF(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                                              VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
+                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                                               x,y,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
@@ -103,21 +105,21 @@ GPSmodlist = []
 samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
 for parameters in samples[np.random.randint(len(samples), size = 100)]:
     
-    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parameters
+    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parameters
 
     offx = np.array([offx1,])
     offy = np.array([offy1,])
     if model_type == 'UF':
         txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
                         deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                        VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
+                        VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                         x,y,
                         ls,ld,mu,
                         rhog,const,S,nstation)
     elif model_type == 'LF':
         txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
                         deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                        VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
+                        VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                         x,y,
                         ls,ld,mu,
                         rhog,const,S,nstation)
