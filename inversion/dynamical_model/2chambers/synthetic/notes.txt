@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Mar  5 12:01:20 2020
+
+@author: aroman
+"""
+
+
+1) Inverted Vs_exp,Vd_exp,k_exp,R5log,R3,condd. 
+Known quantity pt (topographic component) and conds
+Dataset: tilts (not GPS on the collapse).
+It works and produce nice PDF
+
+2) Inverted Vs_exp,Vd_exp,k_exp,R5log,R3,condd. 
+Known quantity pt (topographic component) and conds
+Dataset: tilts and GPS
+GPS error: 1e-2
+Does not work bimodal gaussian, and true value of some parameters is on the edge of the gaussian
+
+Thought: Does it depends on the fact that synth GPS has NO noise and the proposed error is large?
+Try with lower GPS error
+
+
+2) Inverted Vs_exp,Vd_exp,k_exp,R5log,R3,condd. 
+Known quantity pt (topographic component) and conds
+Dataset: tilts and GPS
+GPS error: 1e-3
+Does not work: bimodal gaussian, become worse than GPS err 1e-2
+

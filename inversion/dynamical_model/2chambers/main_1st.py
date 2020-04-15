@@ -21,7 +21,7 @@ np.random.seed(1234567284)
 path_results = '../../../../results/'
 
     
-pathrun = 'test'
+pathrun = 'ciupu'
 model_type = 'LF'
 
 stations  = ['UWD']

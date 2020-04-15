@@ -163,10 +163,12 @@ fname_des = '_t87.out'
 
 filename = 'Mogi_Metropolis_100000_2mogi.pickle'
 path_data_sar  = '../../data/sar/'
-pathgg_results = 'results/2mogi/'
+pathgg_results = '../../../data/'
 path_data  = '../../data/'
+path_dynamical = '../../../results/LF/UWD/07-03-2018/test/'
 path_Figs  = 'Figs/2mogi/'
 
+bestpar = pickle.load( open(path_dynamical + 'bestfitsofar.pickle','rb'))
 
 
 
@@ -174,12 +176,24 @@ results =pickle.load(open(pathgg_results + filename,'rb'))
 coord_source1 = np.zeros((2,1))
 coord_source1[0,0] = results['MAP']['xSource1'] / 1000
 coord_source1[1,0] = results['MAP']['ySource1'] / 1000
-
 coord_source2 = np.zeros((2,1))
 coord_source2[0,0] = results['MAP']['xSource2'] / 1000
 coord_source2[1,0] = results['MAP']['ySource2'] / 1000
+
 lonlatSource1 = local2llh(coord_source1,ref_coord)
 lonlatSource2 = local2llh(coord_source2,ref_coord)
+
+coord_source1dyn = np.zeros((2,1))
+coord_source1dyn[0,0] = bestpar[4] / 1000
+coord_source1dyn[1,0] = bestpar[5] / 1000
+coord_source2dyn = np.zeros((2,1))
+coord_source2dyn[0,0] = bestpar[7] / 1000
+coord_source2dyn[1,0] = bestpar[8] / 1000
+lonlatSource1dyn = local2llh(coord_source1dyn,ref_coord)
+lonlatSource2dyn = local2llh(coord_source2dyn,ref_coord)
+
+
+
 
 panda_trace = pm.backends.tracetab.trace_to_dataframe(results['trace'])
 fig1 = plt.figure(1)
@@ -195,8 +209,11 @@ d = prepare_data(ref_coord,path_data_sar,fname_asc)
 vModel = direct_2mogi_model(results['MAP']['xSource1'],results['MAP']['ySource1'],results['MAP']['depthSource1'],results['MAP']['strSource1'],
                            results['MAP']['xSource2'],results['MAP']['ySource2'],results['MAP']['depthSource2'],results['MAP']['strSource2'],d)
 plot_scatter_ondem(lon_data,lat_data,vModel,path_Figs,'model_' + fname_asc,lonlatSource1[0],lonlatSource1[1],lonlatSource2[0],lonlatSource2[1])
+#adding a plot for comparing the locations from dynamical and kinematic 
+plot_scatter_ondem(lon_data,lat_data,vModel,path_Figs,'model_' + fname_asc +'dynamicalsources',lonlatSource1dyn[0],lonlatSource1dyn[1],lonlatSource2dyn[0],lonlatSource2dyn[1])
+
 residual = v - vModel
-plot_scatter_ondem(lon_data,lat_data,residual,path_Figs,'residual_' + fname_asc,lonlatSource1[0],lonlatSource1[1],lonlatSource2[0],lonlatSource2[1])
+plot_scatter_ondem(lon_data,lat_data,residual,path_Figs,'residual_' + fname_asc,lonlatSource1[0],lonlatSource1dyn[1],lonlatSource2dyn[0],lonlatSource2[1])
 #Second track
 lon_data,lat_data, v, inc, look = read_paul_data(path_data_sar,fname_des)
 plot_scatter_ondem(lon_data,lat_data,v,path_Figs,'data_' + fname_des)

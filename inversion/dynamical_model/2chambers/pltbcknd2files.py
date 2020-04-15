@@ -21,7 +21,7 @@ from main_lib import *
 import os
 import corner
 from shutil import copyfile
-discardval = 2000
+discardval = 50000
 thinval = 1
 path_results = '../../../../results/'
 
@@ -83,14 +83,14 @@ deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsE
 offxSamp = np.array([offx1])
 offySamp = np.array([offy1])
 if model_type == 'UF':
-    txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
+    txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_UF(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                                               VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                                               x,y,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
 elif model_type == 'LF':
-    txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
+    txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_LF(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                                               VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                                               x,y,
@@ -100,6 +100,7 @@ elif model_type == 'LF':
 txmodlist = []
 tymodlist = []
 GPSmodlist = []
+samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
 for parameters in samples[np.random.randint(len(samples), size = 100)]:
     
     deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parameters
@@ -134,7 +135,7 @@ GPSmed = np.median(GPSmodlist,axis =0)
 
 plt.figure(1)
 plt.plot(tTilt / (3600 * 24),tx,'b')
-plt.plot(tTilt / (3600 * 24),txMod,'r')
+plt.plot(tTilt / (3600 * 24),txModbest,'r')
 plt.fill_between(tTilt /(3600 * 24),txmed-txspread,txmed + txspread,color='grey',alpha=0.5)
 plt.xlabel('Time [Days]')
 
@@ -146,7 +147,7 @@ plt.ylabel('Tilt-x' )
 plt.savefig(pathfig + 'tx.pdf')
 plt.figure(2)
 plt.plot(tTilt / (3600 * 24),ty,'b')
-plt.plot(tTilt / (3600 * 24),tyMod,'r')
+plt.plot(tTilt / (3600 * 24),tyModbest,'r')
 plt.fill_between(tTilt / (3600 * 24),tymed - tyspread,tymed + tyspread,color='grey',alpha=0.5)
 plt.xlabel('Time [Days]')
 plt.ylabel('Tilt-y')
@@ -154,7 +155,7 @@ plt.savefig(pathfig + 'ty.pdf')
 
 plt.figure(3)
 plt.plot(tGPS /(3600 * 24),GPS,'b')
-plt.plot(tGPS / (3600 * 24),GPSMod,'r')
+plt.plot(tGPS / (3600 * 24),GPSModbest,'r')
 plt.fill_between(tGPS/ (3600 * 24),GPSmed - GPSspread,GPSmed + GPSspread,color='grey',alpha=0.5)
 plt.xlabel('Time [Days]')
 plt.ylabel('Piston displacement [m]')
@@ -170,7 +171,7 @@ plt.savefig(pathfig + 'chains.pdf')
 plt.close('all')
 samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
 plt.figure()
-corner.corner(samples)
+corner.corner(samples,truths = parmax)
 plt.savefig(pathfig + 'hist.pdf')
 plt.close('all')
 
