@@ -49,7 +49,7 @@ def TwoChambers_UF_timein(w0,par,pslip,tslip,time,ps,pd,t_x,x_data,N):
     pd[time >= tslip] = pdsegment
     x_data[t_x >= tslip] = 2 * (1 - r5) / (1 + r1) * N
     #tslip = optimize.newton(ps_analytic_root, tsl_seed, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
-    tslip = optimize.brentq(ps_analytic_root,0,1e+8, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
+    tslip = optimize.brentq(ps_analytic_root,0,1e+12, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
     pdend = pd_analytic(tslip,r3,t1,phi,a,b,c,d,pd0,ps0)
     return tslip,ps,pd,pdend,x_data
 
@@ -71,7 +71,7 @@ def TwoChambers_LF_timein(w0,par,pslip,tslip,time,ps,pd,t_x,x_data,N):
 
 def DirectModelEmcee_inv_UF(tOrigTilt,tOrigGPS,
                          deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                         VsExpSamp,VdExpSamp,kExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
+                         VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
                          Xst,Yst,
                          ls,ld,mu,
                          rhog,cs,S,nstation):
@@ -284,7 +284,7 @@ def log_likelihood_LF(param,
      
     return liketilt + likeGPS
 
-def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTr,nstation,locEr):
+def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTr,locEr,nstation,flaglocation):
     if np.max(nstation) ==  0:
         deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
         offs = np.array([offx1,offy1,])

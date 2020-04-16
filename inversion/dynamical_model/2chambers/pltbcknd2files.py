@@ -26,7 +26,7 @@ thinval = 1
 
 path_results = '../../../../results/'
 pathrun = 'test'
-model_type = 'LF'
+model_type = 'UF'
 
 stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'
@@ -115,8 +115,9 @@ elif model_type == 'LF':
 txmodlist = []
 tymodlist = []
 GPSmodlist = []
+counter = 0
 samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
-for parameters in samples[np.random.randint(len(samples), size = 100)]:
+for parameters in samples[np.random.randint(len(samples), size = 90)]:
     if Nst == 1:
         deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parameters
         offxSamp = np.array([offx1])
@@ -136,6 +137,7 @@ for parameters in samples[np.random.randint(len(samples), size = 100)]:
                         x,y,
                         ls,ld,mu,
                         rhog,const,S,nstation)
+        
     elif model_type == 'LF':
         txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
                         deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
@@ -143,7 +145,7 @@ for parameters in samples[np.random.randint(len(samples), size = 100)]:
                         x,y,
                         ls,ld,mu,
                         rhog,const,S,nstation)
-        
+    counter = counter + 1   
     txmodlist.append(txMod)
     tymodlist.append(tyMod)
     GPSmodlist.append(GPSMod)
@@ -154,28 +156,34 @@ tyspread = np.std(tymodlist,axis =0)
 tymed = np.median(tymodlist,axis =0)
 GPSspread = np.std(GPSmodlist,axis =0)
 GPSmed = np.median(GPSmodlist,axis =0)
+for i in range(len(stations)):
+    txStation = tx[nstation == i]
+    tyStation = ty[nstation == i]
+    txModbestStation= txModbest[ nstation == i]
+    tyModbestStation= tyModbest[ nstation == i]
+    txsprStation = txspread[nstation == i]
+    txmedStation = txmed[nstation == i]
+    tysprStation = tyspread[nstation == i]
+    tymedStation = tymed[nstation == i]
+    tTiltStation = tTilt[nstation == i]
+    plt.figure()
+    plt.plot(tTiltStation / (3600 * 24),txStation,'b')
+    plt.plot(tTiltStation / (3600 * 24),txModbestStation,'r')
+    plt.fill_between(tTiltStation /(3600 * 24),txmedStation-txsprStation,txmedStation + txsprStation,color='grey',alpha=0.5)
+    plt.xlabel('Time [Days]')
+    plt.ylabel('Tilt-x ' + stations[i])
+    plt.savefig(pathfig + 'tx_' + stations[i] + '.pdf')
+    plt.close('all')
+    plt.figure()
+    plt.plot(tTiltStation / (3600 * 24),tyStation,'b')
+    plt.plot(tTiltStation / (3600 * 24),tyModbestStation,'r')
+    plt.fill_between(tTiltStation / (3600 * 24),tymedStation - tysprStation,tymedStation + tysprStation,color='grey',alpha=0.5)
+    plt.xlabel('Time [Days]')
+    plt.ylabel('Tilt-y ' + stations[i])
+    plt.savefig(pathfig + 'ty_' + stations[i] + '.pdf')
+    plt.close('all')
 
-plt.figure(1)
-plt.plot(tTilt / (3600 * 24),tx,'b')
-plt.plot(tTilt / (3600 * 24),txModbest,'r')
-plt.fill_between(tTilt /(3600 * 24),txmed-txspread,txmed + txspread,color='grey',alpha=0.5)
-plt.xlabel('Time [Days]')
-
-
-
-
-plt.ylabel('Tilt-x' )
-
-plt.savefig(pathfig + 'tx.pdf')
-plt.figure(2)
-plt.plot(tTilt / (3600 * 24),ty,'b')
-plt.plot(tTilt / (3600 * 24),tyModbest,'r')
-plt.fill_between(tTilt / (3600 * 24),tymed - tyspread,tymed + tyspread,color='grey',alpha=0.5)
-plt.xlabel('Time [Days]')
-plt.ylabel('Tilt-y')
-plt.savefig(pathfig + 'ty.pdf')
-
-plt.figure(3)
+plt.figure()
 plt.plot(tGPS /(3600 * 24),GPS,'b')
 plt.plot(tGPS / (3600 * 24),GPSModbest,'r')
 plt.fill_between(tGPS/ (3600 * 24),GPSmed - GPSspread,GPSmed + GPSspread,color='grey',alpha=0.5)

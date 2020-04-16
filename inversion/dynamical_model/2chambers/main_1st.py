@@ -22,7 +22,7 @@ path_results = '../../../../results/'
 
     
 pathrun = 'test'
-model_type = 'LF'
+model_type = 'UF'
 
 stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'
@@ -39,11 +39,11 @@ def parameters_init(mt):
     if mt == 'UF':
         bounds = np.array([[+8,10],[+8,+12],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,10]])
         boundsLoc = np.array([[-1000,1000],[1200,2500],[500,1500],[-1500,+1500],[-1500,2500],[2000,4000]])
-    elif mt == 'LF':
+    elif mt == 'LF':                                                 
         bounds = np.array([[+8,+12],[+8,+10],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,10]])
         boundsLoc = np.array([[-1000,+1000],[-1000,1000],[2000,5000],[-500,0],[1500,2000],[500,1300]])
 
-    bndtiltconst = 1000
+    bndtiltconst = 2000
     bndGPSconst = 200
     bnddeltaP0 = 4e+7
     tiltErr = 1e-5
@@ -157,7 +157,7 @@ else:
                                             ls,ld,mu,
                                             rhog,const,S,
                                             tTilt,tGPS,tx,ty,GPS,
-                                            tiltErr,GPSErr,bounds,boundLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
+                                            tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
         elif model_type == 'LF':
             sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_LF,
                                         args=(x,y,
