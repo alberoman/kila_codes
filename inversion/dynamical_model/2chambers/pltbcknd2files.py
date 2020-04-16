@@ -21,16 +21,16 @@ from main_lib import *
 import os
 import corner
 from shutil import copyfile
-discardval = 1
+discardval = 10
 thinval = 1
 
 path_results = '../../../../results/'
-pathrun = 'press'
+pathrun = 'test'
 model_type = 'LF'
 
-stations  = ['UWD']
+stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'
-flaglocation = 'F'      # This is the flag for locations priors, F for Uniform, N for Normal
+flaglocation = 'N'      # This is the flag for locations priors, F for Uniform, N for Normal
 
 if len(stations) > 1:
     pathtrunk = 'priors' + flaglocation +  '/' + model_type + '/' + str(len(stations)) + 'st'
@@ -39,7 +39,7 @@ else:
 
 
 
-pathtrunk = pathrunk + '/' + date + '/'
+pathtrunk = pathtrunk + '/' + date + '/'
 
 pathgg = pathtrunk + pathrun
 pathgg  =  pathgg + '/'
@@ -65,7 +65,12 @@ except:
 np.random.seed(1234)
 
 Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0= pickle.load(open(pathgg + 'data.pickle','rb'))
-bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = pickle.load(open(pathgg + 'parameters.pickle','rb'))
+a = pickle.load(open(pathgg + 'parameters.pickle','rb'))
+if len(a)== 17:
+    bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = a
+    boundsLoc = 0
+elif len(a)== 18:
+    bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = a
 filename = 'progress_temp.h5'
 #Getting sampler info
 #nwalkers,ndim = reader.shape
@@ -79,12 +84,20 @@ filename = 'progress_temp.h5'
 
 reader = emcee.backends.HDFBackend(pathgg + filename, read_only = True )
 nwalkers,ndim = reader.shape
-samples = reader.get_chain(flat = True)
-parmax = samples[np.argmax(reader.get_log_prob(flat = True))]
-deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
-
-offxSamp = np.array([offx1])
-offySamp = np.array([offy1])
+samples = reader.get_chain(flat = True,discard = discardval)
+parmax = samples[np.argmax(reader.get_log_prob(flat = True,discard = discardval))]
+if Nst == 1:
+    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
+    offxSamp = np.array([offx1])
+    offySamp = np.array([offy1])
+elif Nst == 2:
+    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
+    offxSamp = np.array([offx1],offx2)
+    offySamp = np.array([offy1,offy2])
+elif Nst == 3:
+    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
+    offxSamp = np.array([offx1,offx2,offx3])
+    offySamp = np.array([offy1,offy2,offy3])    
 if model_type == 'UF':
     txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_UF(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
@@ -99,17 +112,23 @@ elif model_type == 'LF':
                                               x,y,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
-
 txmodlist = []
 tymodlist = []
 GPSmodlist = []
 samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
 for parameters in samples[np.random.randint(len(samples), size = 100)]:
-    
-    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parameters
-
-    offx = np.array([offx1,])
-    offy = np.array([offy1,])
+    if Nst == 1:
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parameters
+        offxSamp = np.array([offx1])
+        offySamp = np.array([offy1])
+    elif Nst == 2:
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parameters
+        offxSamp = np.array([offx1],offx2)
+        offySamp = np.array([offy1,offy2])
+    elif Nst == 3:
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parameters
+        offxSamp = np.array([offx1,offx2,offx3])
+        offySamp = np.array([offy1,offy2,offy3])    
     if model_type == 'UF':
         txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
                         deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,

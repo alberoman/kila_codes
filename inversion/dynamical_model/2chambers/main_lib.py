@@ -222,9 +222,19 @@ def log_likelihood_UF(param,
                    rhog,const,S,
                    tTilt,tGPS,txObs,tyObs,GPSObs,
                    tiltErr,GPSErr,nstation):
-    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
-    offxSamp = np.array([offx1])
-    offySamp = np.array([offy1])
+    if np.max(nstation) ==  0:
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offxSamp = np.array([offx1])
+        offySamp = np.array([offy1])
+    if np.max(nstation) ==  1:
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offxSamp = np.array([offx1,offx2])
+        offySamp = np.array([offy1,offy2])
+    if np.max(nstation) == 2:
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offxSamp = np.array([offx1,offx2,offx3])
+        offySamp = np.array([offy1,offy2,offy3])
+        
     txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                                               VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
@@ -246,9 +256,19 @@ def log_likelihood_LF(param,
                    rhog,const,S,
                    tTilt,tGPS,txObs,tyObs,GPSObs,
                    tiltErr,GPSErr,nstation):
-    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
-    offxSamp = np.array([offx1])
-    offySamp = np.array([offy1])
+    if np.max(nstation) ==  0:
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offxSamp = np.array([offx1])
+        offySamp = np.array([offy1])
+    if np.max(nstation) ==  1:
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offxSamp = np.array([offx1,offx2])
+        offySamp = np.array([offy1,offy2])
+    if np.max(nstation) == 2:
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offxSamp = np.array([offx1,offx2,offx3])
+        offySamp = np.array([offy1,offy2,offy3])
+        
     txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                                               VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
@@ -264,76 +284,125 @@ def log_likelihood_LF(param,
      
     return liketilt + likeGPS
 
-def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTr,locEr):
-   deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
-   ksSamp = 10**ksExpSamp
-   kdSamp = 10**kdExpSamp
-   VsSamp= 10**VsExpSamp
-   VdSamp = 10**VdExpSamp
-   R1Samp = rhog * VsSamp /(ksSamp*S)
-   offs = np.array([offx1,offy1,])
-   if bounds[0,0] < VsExpSamp < bounds[0,1] and bounds[1,0] < VdExpSamp < bounds[1,1] and bounds[2,0] < ksExpSamp < bounds[2,1] and bounds[3,0] < kdExpSamp < bounds[3,1] and rhog * (1 + R1Samp) * bounds[4,0] / (2 * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[4,1] / (2 * R1Samp) and  bounds[5,0] * 2 * R1Samp / (1 + R1Samp) < R3Samp < bounds[5,1] * 2 * R1Samp / (1 + R1Samp) and bounds[6,0] < condsSamp < bounds[6,1] and bounds[7,0] < conddSamp < bounds[7,1] and all(np.abs(offs)<bndtiltconst) and  -bndGPSconst < offGPSSamp < bndGPSconst and 0 < deltap0Samp < bndp0:                         
-       logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
-       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
-       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[2]))-0.5*(dsSamp-locTr[2])**2/locEr[2]**2
-       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[3]))-0.5*(xdSamp-locTr[3])**2/locEr[3]**2
-       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[4]))-0.5*(ydSamp-locTr[4])**2/locEr[4]**2
-       logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[5]))-0.5*(ddSamp-locTr[5])**2/locEr[5]**2
-       return logprob
-   return -np.inf
+def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTr,nstation,locEr):
+    if np.max(nstation) ==  0:
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offs = np.array([offx1,offy1,])
+    if np.max(nstation) ==  1:
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offs = np.array([offx1,offy1,offx2,offy2])
+    if np.max(nstation) == 2:
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offs = np.array([offx1,offy1,offx2,offy2,offx3,offy3])
+    ksSamp = 10**ksExpSamp
+    kdSamp = 10**kdExpSamp
+    VsSamp= 10**VsExpSamp
+    VdSamp = 10**VdExpSamp
+    R1Samp = rhog * VsSamp /(ksSamp*S)
+    if flaglocation =='N': # Normal priots
+        conditions = []
+        conditions.append(bounds[0,0] < VsExpSamp < bounds[0,1])
+        conditions.append(bounds[1,0] < VdExpSamp < bounds[1,1])
+        conditions.append(bounds[2,0] < ksExpSamp < bounds[2,1])
+        conditions.append(bounds[3,0] < kdExpSamp < bounds[3,1])
+        conditions.append(rhog * (1 + R1Samp) * bounds[4,0] / (2 * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[4,1] / (2 * R1Samp))
+        conditions.append(bounds[5,0] * 2 * R1Samp / (1 + R1Samp) < R3Samp < bounds[5,1] * 2 * R1Samp / (1 + R1Samp))
+        conditions.append(bounds[6,0] < condsSamp < bounds[6,1])
+        conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
+        conditions.append(all(np.abs(offs)<bndtiltconst))
+        conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
+        conditions.append(-bndp0 < deltap0Samp < 0)
+        if all(conditions):
+            logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
+            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
+            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[2]))-0.5*(dsSamp-locTr[2])**2/locEr[2]**2
+            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[3]))-0.5*(xdSamp-locTr[3])**2/locEr[3]**2
+            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[4]))-0.5*(ydSamp-locTr[4])**2/locEr[4]**2
+            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[5]))-0.5*(ddSamp-locTr[5])**2/locEr[5]**2
+            return logprob
+        return -np.inf
+    elif flaglocation == 'F': #flat uniform priors
+        conditions = []
+        conditions.append(bounds[0,0] < VsExpSamp < bounds[0,1])
+        conditions.append(bounds[1,0] < VdExpSamp < bounds[1,1])
+        conditions.append(bounds[2,0] < ksExpSamp < bounds[2,1])
+        conditions.append(bounds[3,0] < kdExpSamp < bounds[3,1])
+        conditions.append(rhog * (1 + R1Samp) * bounds[4,0] / (2 * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[4,1] / (2 * R1Samp))
+        conditions.append(bounds[5,0] * 2 * R1Samp / (1 + R1Samp) < R3Samp < bounds[5,1] * 2 * R1Samp / (1 + R1Samp))
+        conditions.append(bounds[6,0] < condsSamp < bounds[6,1])
+        conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
+        conditions.append(all(np.abs(offs)<bndtiltconst))
+        conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
+        conditions.append(-bndp0 < deltap0Samp < 0)
+        conditions.append(boundsLoc[0][0]< xsSamp < boundsLoc[0][1])
+        conditions.append(boundsLoc[1][0]< ysSamp < boundsLoc[1][1])
+        conditions.append(boundsLoc[2][0]< dsSamp < boundsLoc[2][1])
+        conditions.append(boundsLoc[3][0]< xdSamp < boundsLoc[3][1])
+        conditions.append(boundsLoc[4][0]< ydSamp < boundsLoc[4][1])
+        conditions.append(boundsLoc[5][0]< ddSamp < boundsLoc[5][1])
+        if all (conditions):
+            return 0
+        return -np.inf    
 
-def log_prior_LF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTr,locEr,flaglocation):
-   deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
-   ksSamp = 10**ksExpSamp
-   kdSamp = 10**kdExpSamp
-   VsSamp= 10**VsExpSamp
-   VdSamp = 10**VdExpSamp
-   R1Samp = rhog * VdSamp /(kdSamp*S)
-   offs = np.array([offx1,offy1,])
-   if flaglocation =='N': # Normal priots
-       conditions = []
-       conditions.append(bounds[0,0] < VsExpSamp < bounds[0,1])
-       conditions.append(bounds[1,0] < VdExpSamp < bounds[1,1])
-       conditions.append(bounds[2,0] < ksExpSamp < bounds[2,1])
-       conditions.append(bounds[3,0] < kdExpSamp < bounds[3,1])
-       conditions.append(rhog * (1 + R1Samp) * bounds[4,0] / (2 * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[4,1] / (2 * R1Samp))
-       conditions.append(bounds[5,0] * 2 * R1Samp / (1 + R1Samp) < R3Samp < bounds[5,1] * 2 * R1Samp / (1 + R1Samp))
-       conditions.append(bounds[6,0] < condsSamp < bounds[6,1])
-       conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
-       conditions.append(all(np.abs(offs)<bndtiltconst))
-       conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
-       conditions.append(-bndp0 < deltap0Samp < 0)
-       if all(conditions):
-           logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
-           logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
-           logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[2]))-0.5*(dsSamp-locTr[2])**2/locEr[2]**2
-           logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[3]))-0.5*(xdSamp-locTr[3])**2/locEr[3]**2
-           logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[4]))-0.5*(ydSamp-locTr[4])**2/locEr[4]**2
-           logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[5]))-0.5*(ddSamp-locTr[5])**2/locEr[5]**2
-           return logprob
-       return -np.inf
-   elif flaglocation == 'F': #flat uniform priors
-       conditions = []
-       conditions.append(bounds[0,0] < VsExpSamp < bounds[0,1])
-       conditions.append(bounds[1,0] < VdExpSamp < bounds[1,1])
-       conditions.append(bounds[2,0] < ksExpSamp < bounds[2,1])
-       conditions.append(bounds[3,0] < kdExpSamp < bounds[3,1])
-       conditions.append(rhog * (1 + R1Samp) * bounds[4,0] / (2 * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[4,1] / (2 * R1Samp))
-       conditions.append(bounds[5,0] * 2 * R1Samp / (1 + R1Samp) < R3Samp < bounds[5,1] * 2 * R1Samp / (1 + R1Samp))
-       conditions.append(bounds[6,0] < condsSamp < bounds[6,1])
-       conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
-       conditions.append(all(np.abs(offs)<bndtiltconst))
-       conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
-       conditions.append(-bndp0 < deltap0Samp < 0)
-       conditions.append(boundsLoc[0][0]< xsSamp < boundsLoc[0][1])
-       conditions.append(boundsLoc[1][0]< ysSamp < boundsLoc[1][1])
-       conditions.append(boundsLoc[2][0]< dsSamp < boundsLoc[2][1])
-       conditions.append(boundsLoc[3][0]< xdSamp < boundsLoc[3][1])
-       conditions.append(boundsLoc[4][0]< ydSamp < boundsLoc[4][1])
-       conditions.append(boundsLoc[5][0]< ddSamp < boundsLoc[5][1])
-       if all (conditions):
-           return 0
-       return -np.inf
+def log_prior_LF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTr,locEr,nstation,flaglocation):
+    if np.max(nstation) ==  0:
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offs = np.array([offx1,offy1,])
+    if np.max(nstation) ==  1:
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offs = np.array([offx1,offy1,offx2,offy2])
+    if np.max(nstation) == 2:
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offs = np.array([offx1,offy1,offx2,offy2,offx3,offy3])
+    ksSamp = 10**ksExpSamp
+    kdSamp = 10**kdExpSamp
+    VsSamp= 10**VsExpSamp
+    VdSamp = 10**VdExpSamp
+    R1Samp = rhog * VdSamp /(kdSamp*S)
+    if flaglocation =='N': # Normal priots
+        conditions = []
+        conditions.append(bounds[0,0] < VsExpSamp < bounds[0,1])
+        conditions.append(bounds[1,0] < VdExpSamp < bounds[1,1])
+        conditions.append(bounds[2,0] < ksExpSamp < bounds[2,1])
+        conditions.append(bounds[3,0] < kdExpSamp < bounds[3,1])
+        conditions.append(rhog * (1 + R1Samp) * bounds[4,0] / (2 * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[4,1] / (2 * R1Samp))
+        conditions.append(bounds[5,0] * 2 * R1Samp / (1 + R1Samp) < R3Samp < bounds[5,1] * 2 * R1Samp / (1 + R1Samp))
+        conditions.append(bounds[6,0] < condsSamp < bounds[6,1])
+        conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
+        conditions.append(all(np.abs(offs)<bndtiltconst))
+        conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
+        conditions.append(-bndp0 < deltap0Samp < 0)
+        if all(conditions):
+            logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
+            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
+            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[2]))-0.5*(dsSamp-locTr[2])**2/locEr[2]**2
+            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[3]))-0.5*(xdSamp-locTr[3])**2/locEr[3]**2
+            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[4]))-0.5*(ydSamp-locTr[4])**2/locEr[4]**2
+            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[5]))-0.5*(ddSamp-locTr[5])**2/locEr[5]**2
+            return logprob
+        return -np.inf
+    elif flaglocation == 'F': #flat uniform priors
+        conditions = []
+        conditions.append(bounds[0,0] < VsExpSamp < bounds[0,1])
+        conditions.append(bounds[1,0] < VdExpSamp < bounds[1,1])
+        conditions.append(bounds[2,0] < ksExpSamp < bounds[2,1])
+        conditions.append(bounds[3,0] < kdExpSamp < bounds[3,1])
+        conditions.append(rhog * (1 + R1Samp) * bounds[4,0] / (2 * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[4,1] / (2 * R1Samp))
+        conditions.append(bounds[5,0] * 2 * R1Samp / (1 + R1Samp) < R3Samp < bounds[5,1] * 2 * R1Samp / (1 + R1Samp))
+        conditions.append(bounds[6,0] < condsSamp < bounds[6,1])
+        conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
+        conditions.append(all(np.abs(offs)<bndtiltconst))
+        conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
+        conditions.append(-bndp0 < deltap0Samp < 0)
+        conditions.append(boundsLoc[0][0]< xsSamp < boundsLoc[0][1])
+        conditions.append(boundsLoc[1][0]< ysSamp < boundsLoc[1][1])
+        conditions.append(boundsLoc[2][0]< dsSamp < boundsLoc[2][1])
+        conditions.append(boundsLoc[3][0]< xdSamp < boundsLoc[3][1])
+        conditions.append(boundsLoc[4][0]< ydSamp < boundsLoc[4][1])
+        conditions.append(boundsLoc[5][0]< ddSamp < boundsLoc[5][1])
+        if all (conditions):
+            return 0
+        return -np.inf
    
 def log_probability_UF(param,
                     xstation,ystation,
@@ -342,7 +411,7 @@ def log_probability_UF(param,
                     tTilt,tGPS,tx,ty,GPS,
                     tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation):
     
-    lp = log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,flaglocation)
+    lp = log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation)
     if not np.isfinite(lp):
         return -np.inf
     return lp + log_likelihood_UF(param,
@@ -360,7 +429,7 @@ def log_probability_LF(param,
                     tTilt,tGPS,tx,ty,GPS,
                     tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation):
     
-    lp = log_prior_LF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,flaglocation)
+    lp = log_prior_LF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation)
     if not np.isfinite(lp):
         return -np.inf
     return lp + log_likelihood_LF(param,
@@ -402,7 +471,6 @@ def walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltco
     pos = np.concatenate((locs,pos),axis = 1)
     
     offtilt = np.zeros((nwalkers, Nst * 2))
-    
     for i in range(Nst * 2):
         offtilt[:,i] = np.random.uniform(low = -bndtiltconst, high = bndtiltconst, size =nwalkers)
     pos = np.concatenate((offtilt,pos),axis = 1)

@@ -24,9 +24,9 @@ path_results = '../../../../results/'
 pathrun = 'test'
 model_type = 'LF'
 
-stations  = ['UWD']
+stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'
-flaglocation = 'F'      # This is the flag for locations priors, F for Uniform, N for Normal
+flaglocation = 'N'      # This is the flag for locations priors, F for Uniform, N for Normal
 
 def parameters_init(mt):
     #Initialize parameters
@@ -69,6 +69,7 @@ def parameters_init(mt):
     const = -9. /(4 * 3.14) * (1 - poisson) / lame
     S = 3.14 * Rcyl**2 
     rhog = rho * g
+    10
     return bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bnddeltaP0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog
 
 
@@ -82,7 +83,7 @@ else:
     pathrunk = 'priors' + flaglocation +  '/' + model_type + '/' + stations[0]
 
 
-pathtrunk = pathrunk + '/' + date + '/'
+pathtrunk = pathtrunk + '/' + date + '/'
 
 pathgg = pathtrunk + pathrun
 pathgg  =  pathgg + '/'
@@ -107,10 +108,11 @@ if  os.path.isfile(pathgg + 'progress.h5'):
     if len(a)== 17:
         bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = a
         boundsLoc = 0
-    elf len(a)== 18:
+    elif len(a)== 18:
         bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = a
     reader = emcee.backends.HDFBackend(pathgg + 'progress.h5', read_only=True)
     niter  = reader.iteration
+    print('The put of the current run is: ',pathgg)
     answer = input('Found past run with ' + str(niter) +' samples. Do you want to continue this run? Enter the number of iteration that additionally you want to do: ')
     moreiter = int(answer)
     print('Restarting!!!!')
@@ -138,6 +140,7 @@ if  os.path.isfile(pathgg + 'progress.h5'):
 
 
 else:
+    print('The put of the current run is: ',pathgg)
     niter = input('How many iteration you want to run? ')
     bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = parameters_init(model_type)
     Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0 = preparation(stations,date,locErrFact,model_type)
