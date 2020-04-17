@@ -69,7 +69,6 @@ def parameters_init(mt):
     const = -9. /(4 * 3.14) * (1 - poisson) / lame
     S = 3.14 * Rcyl**2 
     rhog = rho * g
-    10
     return bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bnddeltaP0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog
 
 

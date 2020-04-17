@@ -21,7 +21,7 @@ from main_lib import *
 import os
 import corner
 from shutil import copyfile
-discardval = 10
+discardval = 3000
 thinval = 1
 
 path_results = '../../../../results/'

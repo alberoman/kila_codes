@@ -75,6 +75,7 @@ def DirectModelEmcee_inv_UF(tOrigTilt,tOrigGPS,
                          Xst,Yst,
                          ls,ld,mu,
                          rhog,cs,S,nstation):
+                         
     VsSamp = 10**VsExpSamp
     VdSamp  = 10**VdExpSamp
     ksSamp = 10**ksExpSamp
@@ -311,7 +312,7 @@ def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
         conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
         conditions.append(all(np.abs(offs)<bndtiltconst))
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
-        conditions.append(-bndp0 < deltap0Samp < 0)
+        conditions.append(0 < deltap0Samp < bndp0)
         if all(conditions):
             logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
             logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
@@ -333,7 +334,7 @@ def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
         conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
         conditions.append(all(np.abs(offs)<bndtiltconst))
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
-        conditions.append(-bndp0 < deltap0Samp < 0)
+        conditions.append(0 < deltap0Samp < bndp0 )
         conditions.append(boundsLoc[0][0]< xsSamp < boundsLoc[0][1])
         conditions.append(boundsLoc[1][0]< ysSamp < boundsLoc[1][1])
         conditions.append(boundsLoc[2][0]< dsSamp < boundsLoc[2][1])
