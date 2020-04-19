@@ -21,12 +21,12 @@ from main_lib import *
 import os
 import corner
 from shutil import copyfile
-discardval = 3000
+discardval = 1
 thinval = 1
 
 path_results = '../../../../results/'
-pathrun = 'test'
-model_type = 'UF'
+pathrun = 'largecond/'
+model_type = 'LF'
 
 stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'

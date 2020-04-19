@@ -65,7 +65,7 @@ def TwoChambers_LF_timein(w0,par,pslip,tslip,time,ps,pd,t_x,x_data,N):
     pd[time >= tslip] = pdsegment
     x_data[t_x >= tslip] = 2 * (1 - r5) / (1 + r1) * N
     #tslip = optimize.newton(ps_analytic_root, tsl_seed, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
-    tslip = optimize.brentq(pd_analytic_root,0,1e+8, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
+    tslip = optimize.brentq(pd_analytic_root,0,1e+12, maxiter =  5000, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
     psend = ps_analytic(tslip,r3,t1,phi,a,b,c,d,pd0,ps0)
     return tslip,ps,pd,psend,x_data
 
@@ -312,7 +312,7 @@ def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
         conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
         conditions.append(all(np.abs(offs)<bndtiltconst))
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
-        conditions.append(0 < deltap0Samp < bndp0)
+        conditions.append(-bndp0 < deltap0Samp < bndp0)
         if all(conditions):
             logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
             logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
@@ -334,7 +334,7 @@ def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
         conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
         conditions.append(all(np.abs(offs)<bndtiltconst))
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
-        conditions.append(0 < deltap0Samp < bndp0 )
+        conditions.append(-bndp0 < deltap0Samp < bndp0 )
         conditions.append(boundsLoc[0][0]< xsSamp < boundsLoc[0][1])
         conditions.append(boundsLoc[1][0]< ysSamp < boundsLoc[1][1])
         conditions.append(boundsLoc[2][0]< dsSamp < boundsLoc[2][1])
@@ -372,7 +372,7 @@ def log_prior_LF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
         conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
         conditions.append(all(np.abs(offs)<bndtiltconst))
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
-        conditions.append(-bndp0 < deltap0Samp < 0)
+        conditions.append(-bndp0 < deltap0Samp < bndp0)
         if all(conditions):
             logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
             logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
@@ -394,7 +394,7 @@ def log_prior_LF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
         conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
         conditions.append(all(np.abs(offs)<bndtiltconst))
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
-        conditions.append(-bndp0 < deltap0Samp < 0)
+        conditions.append(-bndp0 < deltap0Samp < bndp0)
         conditions.append(boundsLoc[0][0]< xsSamp < boundsLoc[0][1])
         conditions.append(boundsLoc[1][0]< ysSamp < boundsLoc[1][1])
         conditions.append(boundsLoc[2][0]< dsSamp < boundsLoc[2][1])
@@ -479,9 +479,9 @@ def walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltco
     offsGPS = np.random.uniform(low = -bndGPSconst , high = 0,size = (nwalkers,1))
     pos = np.concatenate((offsGPS,pos),axis = 1 )
     if mt == 'UF':
-        initialp = np.random.uniform(low = 0 , high = bndp0,size = (nwalkers,1))
+        initialp = np.random.uniform(low = -bndp0 , high = bndp0,size = (nwalkers,1))
     elif mt == 'LF':
-        initialp = np.random.uniform(low = - bndp0 , high = 0,size = (nwalkers,1))
+        initialp = np.random.uniform(low = - bndp0 , high = bndp0,size = (nwalkers,1))
 
     pos = np.concatenate((initialp,pos),axis = 1)
     nwalkers, ndim = pos.shape

@@ -21,8 +21,8 @@ np.random.seed(1234567284)
 path_results = '../../../../results/'
 
     
-pathrun = 'test'
-model_type = 'UF'
+pathrun = 'largecond'
+model_type = 'LF'
 
 stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'
@@ -37,10 +37,10 @@ def parameters_init(mt):
     Ncycmax = 60
 
     if mt == 'UF':
-        bounds = np.array([[+8,10],[+8,+12],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,10]])
+        bounds = np.array([[+8,10],[+8,+12],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[8,50]])
         boundsLoc = np.array([[-1000,1000],[1200,2500],[500,1500],[-1500,+1500],[-1500,2500],[2000,4000]])
     elif mt == 'LF':                                                 
-        bounds = np.array([[+8,+12],[+8,+10],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,10]])
+        bounds = np.array([[+8,+12],[+8,+10],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[8,50]])
         boundsLoc = np.array([[-1000,+1000],[-1000,1000],[2000,5000],[-500,0],[1500,2000],[500,1300]])
 
     bndtiltconst = 2000
@@ -111,7 +111,7 @@ if  os.path.isfile(pathgg + 'progress.h5'):
         bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = a
     reader = emcee.backends.HDFBackend(pathgg + 'progress.h5', read_only=True)
     niter  = reader.iteration
-    print('The put of the current run is: ',pathgg)
+    print('The current run is: ',os.path.abspath(pathgg))
     answer = input('Found past run with ' + str(niter) +' samples. Do you want to continue this run? Enter the number of iteration that additionally you want to do: ')
     moreiter = int(answer)
     print('Restarting!!!!')
