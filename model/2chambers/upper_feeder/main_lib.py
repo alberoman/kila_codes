@@ -137,7 +137,7 @@ def DirectModelEmcee_inv_UF(tOrigTilt,tOrigGPS,
     gpsMod = gpsMod  + offGPSSamp
     return txMod,tyMod,gpsMod#,dtxMod, dtyMod
 
-def DirectModelEmcee_inv_UF_diagno(tOrigTilt,tOrigGPS,
+def DirectModelEmcee_inv_UF_test(tOrigTilt,tOrigGPS,
                          deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                          VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
                          Xst,Yst,
@@ -192,19 +192,18 @@ def DirectModelEmcee_inv_UF_diagno(tOrigTilt,tOrigGPS,
     coeffys = cs * dsSamp * (Yst -  ysSamp) / (dsSamp**2 + (Xst -  xsSamp)**2 + (Yst -  ysSamp)**2 )**(5./2) 
     coeffxd = cs * ddSamp * (Xst -  xdSamp) / (ddSamp**2 + (Xst -  xdSamp)**2 + (Yst -  ydSamp)**2 )**(5./2) 
     coeffyd = cs * ddSamp * (Yst -  ydSamp) / (ddSamp**2 + (Xst -  xdSamp)**2 + (Yst -  ydSamp)**2 )**(5./2) 
-    txMod = coeffxs * VsSamp * ps + coeffxd * VdSamp * pd
-    tyMod = coeffys * VsSamp * ps + coeffyd * VdSamp * pd
+    #txMod = coeffxs * VsSamp * ps + coeffxd * VdSamp * pd
+    #tyMod = coeffys * VsSamp * ps + coeffyd * VdSamp * pd
     #dtxMod = np.diff(txMod[j]) / np.diff(tTiltList[j]))
     #dtyMod.append(np.diff(tyMod[j]) / np.diff(tTiltList[j]))
     
     gpsMod = gps * xstar
     tOrigGPS = tOrigGPS * tstar
-    for i in range((np.max(nstation) + 1)):
-        txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]*1e-6
-        tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]*1e-6
-    gpsMod = gpsMod  + offGPSSamp
-    return txMod,tyMod,ps,pd,coeffxs,coeffys,coeffxd,coeffyd#,dtxMod, dtyMod
-
+#    for i in range((np.max(nstation) + 1)):
+#        txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]*1e-6
+#        tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]*1e-6
+#    gpsMod = gpsMod  + offGPSSamp
+    return ps,pd
 
 def DirectModelEmcee_inv_LF(tOrigTilt,tOrigGPS,
                          deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
@@ -353,7 +352,35 @@ def log_likelihood_LF(param,
      
     return liketilt + likeGPS
 
-
+def log_likelihood_LF_opt(param,fix_par):
+    xstation,ystation,ls,ld,mu,rhog,const,S,tTilt,tGPS,txObs,tyObs,GPSObs,tiltErr,GPSErr,nstation = fix_par
+    if np.max(nstation) ==  0:
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offxSamp = np.array([offx1])
+        offySamp = np.array([offy1])
+    if np.max(nstation) ==  1:
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offxSamp = np.array([offx1,offx2])
+        offySamp = np.array([offy1,offy2])
+    if np.max(nstation) == 2:
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        offxSamp = np.array([offx1,offx2,offx3])
+        offySamp = np.array([offy1,offy2,offy3])
+        
+    txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
+                                              deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
+                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
+                                              xstation,ystation,
+                                              ls,ld,mu,
+                                              rhog,const,S,nstation)
+    sigma2Tilt = tiltErr ** 2
+    sigma2GPS = GPSErr ** 2
+    liketx = -0.5 * np.sum((txObs - txMod) ** 2 / sigma2Tilt,0)  -len(txObs)/ 2 * np.log(6.28 * sigma2Tilt**2)  
+    likety = -0.5 * np.sum((tyObs - tyMod) ** 2 / sigma2Tilt,0)  -len(tyObs)/ 2 * np.log(6.28 * sigma2Tilt**2)
+    liketilt =  + liketx + likety 
+    likeGPS = -0.5 * np.sum((GPSObs - GPSMod) ** 2 / sigma2GPS) -len(GPSObs)/ 2 * np.log(6.28 * sigma2GPS**2)
+     
+    return liketilt + likeGPS
 
 def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTr,locEr,nstation,flaglocation):
     if np.max(nstation) ==  0:

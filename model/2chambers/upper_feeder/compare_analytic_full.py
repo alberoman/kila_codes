@@ -40,7 +40,7 @@ pd0_initial = -2
 
 #Calculating parameters
 
-R1 = rho * g * Vd /(kd*S)
+R1 = rho * g * Vs /(ks*S)
 T1 = (conds / condd )**4 * ld /ls
 PHI = kd /ks * Vs / Vd
 R5 = taud / taus
@@ -114,7 +114,7 @@ for i in range(1,N_cycles):
 ps = np.concatenate((ps)) * taus
 pd = np.concatenate((pd)) * taus
 t = np.concatenate((t)) * tstar
-plt.figure(1)
-plt.plot(t / (3600* 24),pd / 1e+6,'orange')
-plt.plot(t / (3600* 24),ps / 1e+6,'cyan')
+#plt.figure(1)
+#plt.plot(t / (3600* 24),pd / 1e+6,'orange')
+#plt.plot(t / (3600* 24),ps / 1e+6,'cyan')
     

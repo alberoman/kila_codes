@@ -25,7 +25,7 @@ discardval = 1
 thinval = 1
 
 path_results = '../../../../results/'
-pathrun = 'largecond/'
+pathrun = 'noGPS/'
 model_type = 'LF'
 
 stations  = ['UWD','SDH','IKI']
