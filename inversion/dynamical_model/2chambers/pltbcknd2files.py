@@ -25,17 +25,17 @@ discardval = 1
 thinval = 1
 
 path_results = '../../../../results/'
-pathrun = 'noGPS/'
+pathrun = 'largecond'
 model_type = 'LF'
 
-stations  = ['UWD','SDH','IKI']
+stations  = ['SDH']
 date = '07-03-2018'
 flaglocation = 'N'      # This is the flag for locations priors, F for Uniform, N for Normal
 
 if len(stations) > 1:
     pathtrunk = 'priors' + flaglocation +  '/' + model_type + '/' + str(len(stations)) + 'st'
 else:
-    pathrunk = 'priors' + flaglocation +  '/' + model_type + '/' + stations[0]
+    pathtrunk = 'priors' + flaglocation +  '/' + model_type + '/' + stations[0]
 
 
 

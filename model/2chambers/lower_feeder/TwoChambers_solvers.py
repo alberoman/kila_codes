@@ -7,6 +7,7 @@ Created on Fri Feb  7 08:45:43 2020
 """
 import numpy as np
 from scipy import optimize
+from scipy.integrate import odeint,solve_ivp
 
 def system_2chambers_RK4(w0,t,deltat_RGK,par,pCrit,tol):
     #RK solvers with Newton-Raphson criteria for stopping integration 
@@ -101,6 +102,52 @@ def system_2chambers_smallVar(w0,par,nn):
     return tsegment,tslip,pssegment,pdsegment,psend
     
                              
+def slip_phDeriv(w,time,p):
+    R1,R3,R4 = p
+    deriv = [ w[1],
+    -R1*w[0] - w[2] + 1,
+    w[1] - R3*w[2] + R3*w[3],
+    R4*w[2] - R4 * w[3]]
+    return deriv
+
+def slip_phase(R1Samp,R3Samp,R4Samp,xst,p1st,p2st):
+    p = [R1Samp,R3Samp,R4Samp]
+    if R3Samp< 0.3 or R4Samp >R3Samp:
+        tend =  5
+    else: 
+        tend = 100 * 1/R4Samp
+    t_slip = np.linspace(0,tend,1000)
+    w0 = [xst,0,p1st,p2st]
+    wsol = odeint(slip_phDeriv, w0, t_slip, args=(p,))
+    x =  wsol[:,0]
+    vel = wsol[:,1]
+    p1 =  wsol[:,2]
+    p2 = wsol[:,3]
+    x0 = x[vel>0][-1]
+    v0 = vel[vel>0][-1]
+    p10= p1[vel>0][-1]
+    p20 = p2[vel>0][-1]
+    t0 = t_slip[vel>0][-1]
+    tend = t_slip[vel< 0][0]
+    w0 = [x0,v0,p10,p20]
+    t_slip = np.linspace(t0,tend,1000)
+    wsol = odeint(slip_phDeriv, w0, t_slip, args=(p,))
+    x =  wsol[:,0]
+    vel = wsol[:,1]
+    p1 =  wsol[:,2]
+    p2 = wsol[:,3]
+    xend = x[vel>0][-1]
+    vend = vel[vel>0][-1]
+    p1end= p1[vel>0][-1]
+    p2end = p2[vel>0][-1]
+    tend = t_slip[vel>0][-1]
+    dx = xend - xst
+    return dx,vend,p1end,p2end
+    
+    
+    
+
+
 
 
 

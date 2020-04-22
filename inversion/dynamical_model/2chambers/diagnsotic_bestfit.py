@@ -25,8 +25,8 @@ discardval = 1
 thinval = 1
 
 path_results = '../../../../results/'
-pathrun = 'test/'
-model_type = 'UF'
+pathrun = 'superlargecond/'
+model_type = 'LF'
 
 stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'
@@ -107,7 +107,7 @@ if model_type == 'UF':
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
 elif model_type == 'LF':
-    txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_LF_diagno(tTilt,tGPS,
+    txModbest,tyModbest,ps,pd = DirectModelEmcee_inv_LF_diagno(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                                               VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                                               x,y,
