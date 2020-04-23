@@ -142,6 +142,7 @@ def slip_phase(R1Samp,R3Samp,R4Samp,xst,p1st,p2st):
     p2end = p2[vel>0][-1]
     tend = t_slip[vel>0][-1]
     dx = xend - xst
+    print(tend)
     return dx,vend,p1end,p2end
     
     

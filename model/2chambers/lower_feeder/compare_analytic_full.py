@@ -15,16 +15,16 @@ import time
 rho = 2600
 g = 9.8
 #Conduit parameters
-condd = 8
-conds = 4
+condd = 15
+conds = 3
 ls = 3e+4
 ld = 2.5e+3
-mu = 200
+mu = 100
 
 #Chambers parameters
 Vs = 3e+10
 Vd  = 1e+9
-ks = 1e+9
+ks = 5e+9
 kd = 1e+9
 #Pressures and friction6
 pt = 10e+6
@@ -45,8 +45,8 @@ T1 = (conds / condd )**4 * ld /ls
 PHI = kd /ks * Vs / Vd
 R5 = 0
 R3t = (pt - taus)  / (taus -  taud)
-R3  = 3.14  * condd**4 / ( 8 * mu * ld *S ) * (ks * m / Vs)**0.5
-R4  = 3.14 * condd**4 / (mu * ld *S ) * (Vs/Vd**2 * kd**2/ks * m)**0.5
+R3  = 3.14  * condd**4 / ( 8 * mu * ld *S ) * (kd * m / Vd)**0.5
+R4  = 3.14 * condd**4 / (mu * ld *S ) * (Vd/Vs**2 * ks**2/kd * m)**0.5
 params = [T1,PHI,R3t] #R1 is the ratio of the hydraulic parameters (for high values the top conduit is more efficient)
 tstar = Vs * 8 * mu * ld / (ks * 3.14 * condd**4)
 xstar = (taus - taud) * Vd / (kd * S) 
@@ -64,7 +64,7 @@ D = T1/2 - PHI /2 + 1./2
 params = [R3t,T1,PHI,A,B,C,D]
 PD0 =    + 2 * (1 - R5) / un_plus_R1 
 PSLIP =  - 2 * R1 * (1 - R5)/un_plus_R1
-PS0 = -1.5
+PS0 = 0
 w0 = np.array([PS0,PD0])
 ps = []
 pd = []
@@ -93,19 +93,19 @@ tan = np.concatenate((t)) * tstar
 time2 = time.time()
 dtan =time2 - time1
 
-#plt.figure(1)
-#plt.plot(tan / (3600* 24),pdan / 1e+6,'blue')
-#plt.plot(tan / (3600* 24),psan / 1e+6,'red')
-#plt.ylabel('Pressure deep chamber [MPa]')
-#plt.xlabel('Time [Days]')
-#plt.legend(['With Piston collapse, not feeding eruption','Without piston collapse,feeding'])
+plt.figure(1)
+plt.plot(tan / (3600* 24),pdan / 1e+6,'blue')
+plt.plot(tan / (3600* 24),psan / 1e+6,'red')
+plt.ylabel('Pressure deep chamber [MPa]')
+plt.xlabel('Time [Days]')
+plt.legend(['With Piston collapse, not feeding eruption','Without piston collapse,feeding'])
 ps = []
 pd = []
 x = []
 t = [] 
 x0 = 0
 pd0 = 0
-ps0 = -1.5
+ps0 = 0
 dx,vfinal,PD0,PS0 = slip_phase(R1,R3,R4,0,pd0,ps0)
 xcumul = dx
 w0 = np.array([PS0,PD0])
@@ -141,6 +141,8 @@ plt.plot(tnum / (3600* 24),pdnum / 1e+6,'c')
 plt.plot(tnum/ (3600* 24),psnum / 1e+6,'orange')
 print('Time execution analytic is ', dtan)
 print('Time execution numerical is ', dtnum)
+plt.show()
+
 
 
 
