@@ -15,21 +15,21 @@ import time
 rho = 2600
 g = 9.8
 #Conduit parameters
-condd = 8
-conds = 4
+condd = 22
+conds = 3
 ls = 3e+4
 ld = 2.5e+3
 mu = 200
 
 #Chambers parameters
-Vs = 3e+10
+Vs = 1e+10
 Vd  = 1e+9
-ks = 1e+9
+ks =1e+9
 kd = 1e+9
 #Pressures and friction6
-pt = 10e+6
-taus = 2.5e+6
-taud = 1e+6
+pt = 20e+6
+taus = 5e+6
+taud = 0.5e+6
 
 #Cylinder parameters
 Rcyl = 4.0e+2
@@ -45,8 +45,8 @@ T1 = (conds / condd )**4 * ld /ls
 PHI = kd /ks * Vs / Vd
 R5 = 0
 R3t = (pt - taus)  / (taus -  taud)
-R3  = 3.14  * condd**4 / ( 8 * mu * ld *S ) * (ks * m / Vs)**0.5
-R4  = 3.14 * condd**4 / (mu * ld *S ) * (Vs/Vd**2 * kd**2/ks * m)**0.5
+R3  = 3.14 * condd**4 / ( 8 * mu * ld *S ) * (kd * m / Vd)**0.5
+R4  = 3.14 * condd**4 / ( 8 * mu * ld *S ) * (Vd/Vs**2 * ks**2/kd * m)**0.5
 params = [T1,PHI,R3t] #R1 is the ratio of the hydraulic parameters (for high values the top conduit is more efficient)
 tstar = Vs * 8 * mu * ld / (ks * 3.14 * condd**4)
 xstar = (taus - taud) * Vd / (kd * S) 
@@ -64,20 +64,17 @@ D = T1/2 - PHI /2 + 1./2
 params = [R3t,T1,PHI,A,B,C,D]
 PD0 =    + 2 * (1 - R5) / un_plus_R1 
 PSLIP =  - 2 * R1 * (1 - R5)/un_plus_R1
-PS0 = -1.5
+PS0 = 0
 w0 = np.array([PS0,PD0])
 ps = []
 pd = []
 t = []
-TSLIP = 0
 timescale = np.max(np.array([T1,1]))
 TSLIP_seed = 1
 N_cycles = int((1 + R1)/ (2 * R1 ) * R3t) - 1
 time1 = time.time()
 for i in range(1,N_cycles + 1):
-    
-    tseg,tslip,PS,PD,ps0 = system_2chambers(w0,params,PSLIP,TSLIP,TSLIP_seed)
-    TSLIP_seed = tslip
+    tseg,tslip,PS,PD,ps0 = system_2chambers(w0,params,PSLIP)
     ps.append(PS)
     pd.append(PD)
     t.append(tseg + tcounter)
@@ -93,19 +90,19 @@ tan = np.concatenate((t)) * tstar
 time2 = time.time()
 dtan =time2 - time1
 
-#plt.figure(1)
-#plt.plot(tan / (3600* 24),pdan / 1e+6,'blue')
-#plt.plot(tan / (3600* 24),psan / 1e+6,'red')
-#plt.ylabel('Pressure deep chamber [MPa]')
-#plt.xlabel('Time [Days]')
-#plt.legend(['With Piston collapse, not feeding eruption','Without piston collapse,feeding'])
+plt.figure(1)
+plt.plot(tan / (3600* 24),pdan / 1e+6,'blue')
+plt.plot(tan / (3600* 24),psan / 1e+6,'red')
+plt.ylabel('Pressure deep chamber [MPa]')
+plt.xlabel('Time [Days]')
+plt.legend(['With Piston collapse, not feeding eruption','Without piston collapse,feeding'])
 ps = []
 pd = []
 x = []
 t = [] 
 x0 = 0
 pd0 = 0
-ps0 = -1.5
+ps0 = 0
 dx,vfinal,PD0,PS0 = slip_phase(R1,R3,R4,0,pd0,ps0)
 xcumul = dx
 w0 = np.array([PS0,PD0])
@@ -117,7 +114,7 @@ time1 = time.time()
 
 while (np.abs(PSLIP) < R3t):
     w0 = np.array([PS0,PD0])
-    tseg,tslip,PS,PD,ps0 = system_2chambers(w0,params,PSLIP,TSLIP,TSLIP_seed)
+    tseg,tslip,PS,PD,ps0 = system_2chambers(w0,params,PSLIP)
     x.append(xcumul * np.ones(len(PS)))
     ps.append(PS)
     pd.append(PD)
@@ -144,9 +141,46 @@ print('Time execution numerical is ', dtnum)
 
 
 
+tOrigTilt = tnum / tstar
+tOrigGPS = tnum[::10]
+ps = np.ones(len(tOrigTilt))
+pd = np.ones(len(tOrigTilt))
+gps = np.ones(len(tOrigGPS))
+t = [] 
+x0 = 0
+pd0 = 0
+ps0 = 0
+TSLIP = 0
+dgps,vfinal,pdend,psend = slip_phase(R1,R3,R4,0,pd0,ps0)
+gpscum = dgps
+PSLIP = -R1 * gpscum
+tcounter = 0
+print('new')
+i = 1
+time1 = time.time()
 
+while (np.abs(PSLIP) < R3t):
+    w0 = np.array([psend,pdend])
+    tslip,ps,pd,psend,gps = Twochambers_timein(w0,params,PSLIP,TSLIP,tOrigTilt,ps,pd,tOrigGPS,gps,gpscum)
+    TSLIP = TSLIP + tslip
+    pd0 = PSLIP
+    ps0 = psend
+    dgps,vfinal,pdend,psend = slip_phase(R1,R3,R4,gpscum,pd0,ps0)
+    gpscum = gpscum + dgps
+    PSLIP = -R1 * gpscum
+    print(i)
+    i = i + 1
+psnum = ps * (taus - taud)
+pdnum = pd * (taus - taud)
+tnum = tOrigTilt * tstar
+xnum = gps * xstar
 
-
+time2 = time.time()
+dtnum = time2 -  time1
+plt.plot(tnum / (3600* 24),pdnum / 1e+6,'k')
+plt.plot(tnum/ (3600* 24),psnum / 1e+6,'k')
+print('Time execution analytic is ', dtan)
+print('Time execution numerical is ', dtnum)
 
 
 

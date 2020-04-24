@@ -53,7 +53,6 @@ def parameters_init(mt):
     a_parameter = 5
     thin = 10
     nwalkers = 64
-
     rho = 2600
     g = 9.8
     #Conduit parameters
@@ -65,11 +64,13 @@ def parameters_init(mt):
     lame = 1e+9
     #Cylinder parameters
     Rcyl = 1.0e+3
+    hpiston = 1000
     ndim = len(bounds)
     const = -9. /(4 * 3.14) * (1 - poisson) / lame
     S = 3.14 * Rcyl**2 
     rhog = rho * g
-    return bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bnddeltaP0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog
+    mpiston = rho * S * hpiston
+    return bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bnddeltaP0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog,mpiston
 
 
 
@@ -124,14 +125,14 @@ if  os.path.isfile(pathgg + 'progress.h5'):
             sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
                                             args=(x,y,
                                                   ls,ld,mu,
-                                                  rhog,const,S,
+                                                  rhog,const,S,mpiston,
                                                   tTilt,tGPS,tx,ty,GPS,
                                                   tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
         elif model_type =='LF':
             sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_LF,
                                             args=(x,y,
                                                   ls,ld,mu,
-                                                  rhog,const,S,
+                                                  rhog,const,S,mpiston,
                                                   tTilt,tGPS,tx,ty,GPS,
                                                   tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
         sampler.run_mcmc(None, moreiter, progress=True,thin = thin)
@@ -141,7 +142,7 @@ if  os.path.isfile(pathgg + 'progress.h5'):
 else:
     print('The put of the current run is: ',pathgg)
     niter = input('How many iteration you want to run? ')
-    bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = parameters_init(model_type)
+    bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog,mpiston = parameters_init(model_type)
     Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0 = preparation(stations,date,locErrFact,model_type)
     pos,nwalkers,ndim = walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,bndp0,Nst,model_type,flaglocation)
     pickle.dump((Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0),open(pathgg + 'data.pickle','wb'))
@@ -154,14 +155,14 @@ else:
             sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
                                         args=(x,y,
                                             ls,ld,mu,
-                                            rhog,const,S,
+                                            rhog,const,S,mpiston,
                                             tTilt,tGPS,tx,ty,GPS,
                                             tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
         elif model_type == 'LF':
             sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_LF,
                                         args=(x,y,
                                             ls,ld,mu,
-                                            rhog,const,S,
+                                            rhog,const,S,mpiston,
                                             tTilt,tGPS,tx,ty,GPS,
                                             tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
        

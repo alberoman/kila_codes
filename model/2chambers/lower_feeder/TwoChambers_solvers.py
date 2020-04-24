@@ -67,7 +67,7 @@ def pd_analytic_smallVar(t,R3,T1,phi,pd0,ps0):
     pd = ps0 + (pd0 - ps0)*np.exp(-phi*t)
     return pd
 
-def Twochambers_timein(w0,par,pslip,tslip,time,ps,pd,tsl_seed):
+def Twochambers_timein(w0,par,pslip,tslip,time,ps,pd,tx,x,xcum):
     ps0,pd0 = w0
     r3,t1,phi,a,b,c,d = par
     tsegment = time[time >= tslip]
@@ -75,32 +75,23 @@ def Twochambers_timein(w0,par,pslip,tslip,time,ps,pd,tsl_seed):
     pdsegment = pd_analytic(tsegment - tslip,r3,t1,phi,a,b,c,d,pd0,ps0)
     ps[time >= tslip] = pssegment
     pd[time >= tslip] = pdsegment
+    x[tx >= tslip] = xcum
     #tslip = optimize.newton(ps_analytic_root, tsl_seed, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
-    tslip = optimize.brentq(pd_analytic_root,0,1e+7, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
-    pdend = pd_analytic(tslip,r3,t1,phi,a,b,c,d,pd0,ps0)
-    return tslip,ps,pd,pdend
+    tslip = optimize.brentq(pd_analytic_root,0,1e+12, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
+    psend = ps_analytic(tslip,r3,t1,phi,a,b,c,d,pd0,ps0)
+    return tslip,ps,pd,psend,x
 
-def system_2chambers(w0,par,pslip,tslip,tsl_seed):
+def system_2chambers(w0,par,pslip):
     ps0,pd0 = w0
     r3,t1,phi,a,b,c,d = par
     #tslip = optimize.newton(ps_analytic_root, tsl_seed, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
-    tslip = optimize.brentq(pd_analytic_root,0,1e+7, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
+    tslip = optimize.brentq(pd_analytic_root,0,1e+12, args = (r3,t1,phi,a,b,c,d,pd0,ps0,pslip))
     tsegment = np.linspace(0,tslip,20)
     pssegment = ps_analytic(tsegment,r3,t1,phi,a,b,c,d,pd0,ps0)
     pdsegment = pd_analytic(tsegment,r3,t1,phi,a,b,c,d,pd0,ps0)
     psend = pssegment[-1]
     return tsegment,tslip,pssegment,pdsegment,psend
 
-def system_2chambers_smallVar(w0,par,nn):
-    ps0,pd0 = w0
-    r1,r3,r5,t1,phi = par
-    tslip = np.log((-2*r1*r5*nn + 2*r1*nn + r1*ps0 + r1 + 2*r5 + ps0 - 1)/(-2*r1*r5*nn + 2*r1*nn + r1*ps0 + r1 + ps0 + 1))/phi
-    tsegment = np.linspace(0,tslip,30)
-    pssegment = ps_analytic_smallVar(tsegment,r3,t1,phi,pd0,ps0)
-    pdsegment = pd_analytic_smallVar(tsegment,r3,t1,phi,pd0,ps0)
-    psend = pssegment[-1]
-    return tsegment,tslip,pssegment,pdsegment,psend
-    
                              
 def slip_phDeriv(w,time,p):
     R1,R3,R4 = p
@@ -123,25 +114,34 @@ def slip_phase(R1Samp,R3Samp,R4Samp,xst,p1st,p2st):
     vel = wsol[:,1]
     p1 =  wsol[:,2]
     p2 = wsol[:,3]
-    x0 = x[vel>0][-1]
-    v0 = vel[vel>0][-1]
-    p10= p1[vel>0][-1]
-    p20 = p2[vel>0][-1]
-    t0 = t_slip[vel>0][-1]
-    tend = t_slip[vel< 0][0]
-    w0 = [x0,v0,p10,p20]
-    t_slip = np.linspace(t0,tend,1000)
-    wsol = odeint(slip_phDeriv, w0, t_slip, args=(p,))
-    x =  wsol[:,0]
-    vel = wsol[:,1]
-    p1 =  wsol[:,2]
-    p2 = wsol[:,3]
-    xend = x[vel>0][-1]
-    vend = vel[vel>0][-1]
-    p1end= p1[vel>0][-1]
-    p2end = p2[vel>0][-1]
-    tend = t_slip[vel>0][-1]
+    ind = np.where(vel<0)
+    ind0 = ind[0][0] -1
+    indend = ind[0][0]
+    
+    while vel[ind0]>1e-2:
+        x0 = x[ind0]
+        v0 = vel[ind0]
+        p10= p1[ind0]
+        p20 = p2[ind0]
+        t0 = t_slip[ind0]
+        tend = t_slip[indend]
+        w0 = [x0,v0,p10,p20]
+        t_slip = np.linspace(t0,tend,100)
+        wsol = odeint(slip_phDeriv, w0, t_slip, args=(p,))
+        x =  wsol[:,0]
+        vel = wsol[:,1]
+        p1 =  wsol[:,2]
+        p2 = wsol[:,3]
+        ind = np.where(vel<0)
+        ind0 = ind[0][0] -1
+        indend = ind[0][0]
+    
+    xend = x[ind0]    
+    p1end= p1[ind0]
+    p2end = p2[ind0]
+    tend = t_slip[ind0]
     dx = xend - xst
+    vend = vel[ind0]
     return dx,vend,p1end,p2end
     
     
