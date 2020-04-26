@@ -21,7 +21,9 @@ np.random.seed(1234567284)
 path_results = '../../../../results/'
 
     
-pathrun = 'largecond'
+
+pathrun = 'plot'
+
 model_type = 'LF'
 
 stations  = ['UWD','SDH','IKI']
