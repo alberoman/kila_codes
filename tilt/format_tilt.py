@@ -150,7 +150,7 @@ def correct_offset(north,east,flag):
             
             
 
-pathgg = 'Tiltmeterdatafr/'
+pathgg = '../../data/Tiltmeterdatafr/'
 day_beginning =  '05/01/2018'
 day_end =  '08/15/2018'
 

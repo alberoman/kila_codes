@@ -347,6 +347,9 @@ def DirectModelEmcee_inv_LF(tOrigTilt,tOrigGPS,
         txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]*1e-6
         tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]*1e-6
     gpsMod = gpsMod  + offGPSSamp
+    plt.plot(tOrigTilt[nstation == 0],pd[nstation==0])
+    plt.savefig('test.pdf')
+    plt.close()
     return txMod,tyMod,gpsMod#,ps,pd
 
 def DirectModelEmcee_inv_LF_num(tTilt,tGPS,
@@ -555,7 +558,7 @@ def log_likelihood_LF(param,
     M3Samp  = 3.14 * conddSamp**4 / ( 8 * mu * ld *S ) * (kdSamp * mpiston / VdSamp)**0.5
     M4Samp  = 3.14 * conddSamp**4 / ( 8 * mu * ld *S ) * (VdSamp/VsSamp**2 * ksSamp**2/kdSamp * mpiston)**0.5
     if M3Samp > 0.1 and M4Samp < M3Samp:
-        txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF_num(tTilt,tGPS,
+        txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                                               VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
                                               xstation,ystation,
@@ -672,8 +675,8 @@ def log_prior_LF(param,S,mpiston,rhog,mu,ld,bounds,boundsLoc,bndGPSconst,bndtilt
 #            conditions.append(bounds[5,0] * 2 * min(R1Sampd,R1Samps) / (1 + min(R1Sampd,R1Samps)) < R3Samp <bounds[5,1] * 2 * max(R1Sampd,R1Samps) / (1 + max(R1Sampd,R1Samps)))
 #
 #        else:
-#            conditions.append(rhog * (1 + R1Sampd) * bounds[4,0] / (2 * R1Sampd) < pspdSamp < rhog * (1 + R1Sampd) * bounds[4,1] / (2 * R1Sampd))
-#            conditions.append(bounds[5,0] * 2 * R1Sampd / (1 + R1Sampd) < R3Samp < bounds[5,1] * 2 * R1Sampd / (1 + R1Sampd))
+        conditions.append(rhog * (1 + R1Sampd) * bounds[4,0] / (2 * R1Sampd) < pspdSamp < rhog * (1 + R1Sampd) * bounds[4,1] / (2 * R1Sampd))
+        conditions.append(bounds[5,0] * 2 * R1Sampd / (1 + R1Sampd) < R3Samp < bounds[5,1] * 2 * R1Sampd / (1 + R1Sampd))
         conditions.append(bounds[4,0]  < pspdSamp < bounds[4,1])
         conditions.append(bounds[5,0] < R3Samp < bounds[5,1])
         conditions.append(bounds[6,0] < condsSamp < bounds[6,1])
@@ -749,9 +752,9 @@ def log_probability_LF(param,
                                tiltErr,GPSErr,nstation)   
 
 def walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,mpiston,mu,ld,locTruth,locErr,bndtiltconst,bndGPSconst,bndp0,Nst,mt,flaglocation):
-    pos = np.zeros((nwalkers,ndim)) 
+    pos = np.zeros((nwalkers*100,ndim)) 
     for i in range(len(bounds)):
-        pos[:,i] = np.random.uniform(low = bounds[i][0],high = bounds[i][1],size = nwalkers)
+        pos[:,i] = np.random.uniform(low = bounds[i][0],high = bounds[i][1],size = nwalkers*100)
     if mt == 'UF':
         R1Initial = rhog * 10**pos[:,0] /(10**pos[:,2] * S)
     elif mt == 'LF':
@@ -759,30 +762,30 @@ def walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,mpiston,mu,ld,locTruth,lo
         R1Initials = rhog * 10**pos[:,0] /(10**pos[:,2] * S)
         M3Initial = 3.14 * pos[:,-1]**4 / ( 8 * mu * ld *S ) * (10**pos[:,3] * mpiston / 10**pos[:,1])**0.5
         M4Initial  = 3.14 * pos[:,-1]**4 / ( 8 * mu * ld *S ) * (10**pos[:,1]/10**pos[:,0]**2 * 10**pos[:,2]**2/10**pos[:,3] * mpiston)**0.5
-#    loweran =  rhog * (1 + R1Initiald) * bounds[4,0] / (2 * R1Initiald)
-#    upperan =  rhog * (1 + R1Initiald) * bounds[4,1] / (2 * R1Initiald)
-#    pos[:,4] = np.random.uniform(low = loweran,high = upperan, size = nwalkers * 10)
+    loweran =  rhog * (1 + R1Initiald) * bounds[4,0] / (2 * R1Initiald)
+    upperan =  rhog * (1 + R1Initiald) * bounds[4,1] / (2 * R1Initiald)
+    pos[:,4] = np.random.uniform(low = loweran,high = upperan, size = nwalkers * 100)
 #    for i in range(nwalkers * 10):
 #        lowernum =  rhog * (1 + max(R1Initials[i],R1Initiald[i])) * bounds[4,0] / (2 *max(R1Initials[i],R1Initiald[i]))
 #        uppernum =  rhog * (1 + min(R1Initials[i],R1Initiald[i])) * bounds[4,1] / (2 * min(R1Initials[i],R1Initiald[i]))
 #        if M3Initial[i] > 0.1 and M4Initial[i] < M3Initial[i]:
 #            pos[i,4] = np.random.uniform(low = lowernum,high = uppernum)
-#    ind = pos[:,4] < 3e+7
-#    R1Initials = R1Initials[ind]
-#    R1Initiald = R1Initiald[ind]
-#    M3Initial = M3Initial[ind]
-#    M4Initial = M4Initial[ind]
-#    pos = pos[ind,:]
-#    ind = np.random.uniform(len(pos),size = nwalkers)
-#    ind = ind.astype(int)
-#    pos = pos[ind,:]
-#    R1Initials = R1Initials[ind]
-#    R1Initiald = R1Initiald[ind]
-#    M3Initial = M3Initial[ind]
-#    M4Initial = M4Initial[ind]
-#    loweran = bounds[5,0] * 2 * R1Initiald / (1 + R1Initiald)
-#    upperan = bounds[5,1] * 2 * R1Initiald / (1 + R1Initiald)
-#    pos[:,5] = np.random.uniform(low = loweran,high = upperan, size = nwalkers)
+    ind = pos[:,4] < 3e+7
+    R1Initials = R1Initials[ind]
+    R1Initiald = R1Initiald[ind]
+    M3Initial = M3Initial[ind]
+    M4Initial = M4Initial[ind]
+    pos = pos[ind,:]
+    ind = np.random.uniform(len(pos),size = nwalkers)
+    ind = ind.astype(int)
+    pos = pos[ind,:]
+    R1Initials = R1Initials[ind]
+    R1Initiald = R1Initiald[ind]
+    M3Initial = M3Initial[ind]
+    M4Initial = M4Initial[ind]
+    loweran = bounds[5,0] * 2 * R1Initiald / (1 + R1Initiald)
+    upperan = bounds[5,1] * 2 * R1Initiald / (1 + R1Initiald)
+    pos[:,5] = np.random.uniform(low = loweran,high = upperan, size = nwalkers)
 #    for i in range(nwalkers):
 #        lowernum = bounds[5,0] * 2 * min(R1Initiald[i],R1Initials[i]) / (1 + min(R1Initiald[i],R1Initials[i]))
 #        uppernum = bounds[5,1] * 2 * max(R1Initiald[i],R1Initials[i]) / (1 + max(R1Initiald[i],R1Initials[i]))
