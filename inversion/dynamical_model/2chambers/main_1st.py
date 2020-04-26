@@ -21,7 +21,7 @@ np.random.seed(1234567284)
 path_results = '../../../../results/'
 
     
-pathrun = 'largecond'
+pathrun = 'numerical'
 model_type = 'LF'
 
 stations  = ['UWD','SDH','IKI']
@@ -37,10 +37,11 @@ def parameters_init(mt):
     Ncycmax = 60
 
     if mt == 'UF':
-        bounds = np.array([[+8,10],[+9,+12],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[8,50]])
+        bounds = np.array([[+8,10],[+9,+12],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,50]])
         boundsLoc = np.array([[-1000,1000],[1200,2500],[500,1500],[-1500,+1500],[-1500,2500],[2000,4000]])
     elif mt == 'LF':                                                 
-        bounds = np.array([[+8,+12],[+8,+10],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[8,50]])
+        #bounds = np.array([[+8,+12],[+8,+10],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,50]])
+        bounds = np.array([[+8,+12],[+8,+10],[+8,+11],[8,11],[1e+5,4e+6],[1.1,100],[1,10],[1,50]])
         boundsLoc = np.array([[-1000,+1000],[-1000,1000],[2000,5000],[-500,0],[1500,2000],[500,1300]])
 
     bndtiltconst = 2000
@@ -131,6 +132,7 @@ if  os.path.isfile(pathgg + 'progress.h5'):
         elif model_type =='LF':
             sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_LF,
                                             args=(x,y,
+                                                  
                                                   ls,ld,mu,
                                                   rhog,const,S,mpiston,
                                                   tTilt,tGPS,tx,ty,GPS,
@@ -144,28 +146,27 @@ else:
     niter = input('How many iteration you want to run? ')
     bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog,mpiston = parameters_init(model_type)
     Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0 = preparation(stations,date,locErrFact,model_type)
-    pos,nwalkers,ndim = walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,bndp0,Nst,model_type,flaglocation)
+    pos,nwalkers,ndim,M4,M3 = walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,mpiston,mu,ld,locTruth,locErr,bndtiltconst,bndGPSconst,bndp0,Nst,model_type,flaglocation)
     pickle.dump((Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0),open(pathgg + 'data.pickle','wb'))
     pickle.dump((bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog),open(pathgg + 'parameters.pickle','wb'))
     filename = pathgg + "progress.h5"
     backend = emcee.backends.HDFBackend(filename)
     move = emcee.moves.StretchMove(a=a_parameter)
-    with Pool() as pool:
-        if model_type == 'UF':
-            sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
-                                        args=(x,y,
-                                            ls,ld,mu,
-                                            rhog,const,S,mpiston,
-                                            tTilt,tGPS,tx,ty,GPS,
-                                            tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
-        elif model_type == 'LF':
-            sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_LF,
-                                        args=(x,y,
-                                            ls,ld,mu,
-                                            rhog,const,S,mpiston,
-                                            tTilt,tGPS,tx,ty,GPS,
-                                            tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
-       
-        print('Running main sampling')
-        sampler.run_mcmc(pos,niter, progress = True,thin = thin)
-        
+    if model_type == 'UF':
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
+                                    args=(x,y,
+                                        ls,ld,mu,
+                                        rhog,const,S,mpiston,
+                                        tTilt,tGPS,tx,ty,GPS,
+                                        tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend,)
+    elif model_type == 'LF':
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_LF,
+                                    args=(x,y,
+                                        ls,ld,mu,
+                                        rhog,const,S,mpiston,
+                                        tTilt,tGPS,tx,ty,GPS,
+                                        tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend,)
+   
+    print('Running main sampling')
+    sampler.run_mcmc(pos,niter, progress = True,thin = thin)
+    

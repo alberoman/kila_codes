@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Apr 25 10:17:26 2020
+
+@author: aroman
+"""
+from main_lib import *
+import numpy as np
+import time
+param = np.array([0, -4.84864471e+01, -1.90797740e+03,  7.88721569e+02,
+        4.09396634e+02,  1.21418638e+03,  1.15673821e+03, -9.43136571e+02,
+       -3.37563095e+02, -4.07962496e+02,  2.46321685e+03, -5.30483368e+02,
+        1.78103701e+03,  6.87195541e+02,  1.15794619e+01,  9.74871184e+00,
+        1.03853302e+01,  8.94787679e+00,  2.97058868e+05,  3.15243437e+00,
+        6.09602477e+00,  35.83577634e+00])
+deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+Xst = x
+Yst = y
+cs = const
+t1 = time.time()
+txMod,tyMod,gpsMod,psnum,pdnum = DirectModelEmcee_inv_LF_num(tTilt,tGPS,
+                         deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
+                         VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
+                         Xst,Yst,
+                         ls,ld,mu,
+                         rhog,cs,S,mpiston,nstation)
+print(time.time() - t1)
+t1 =time.time()
+txMod,tyMod,gpsMod,psan,pdan = DirectModelEmcee_inv_LF(tTilt,tGPS,
+                         deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
+                         VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
+                         Xst,Yst,
+                         ls,ld,mu,
+                         rhog,cs,S,mpiston,nstation)
+print(time.time() - t1)
+
+plt.plot(tTilt[nstation==0],pdan[nstation == 0],'r')
+plt.plot(tTilt[nstation==0],pdnum[nstation == 0],'b')

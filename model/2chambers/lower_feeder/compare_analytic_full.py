@@ -15,16 +15,15 @@ import time
 rho = 2600
 g = 9.8
 #Conduit parameters
-condd = 22
-conds = 3
+condd = 40
 ls = 3e+4
 ld = 2.5e+3
 mu = 200
 
 #Chambers parameters
-Vs = 1e+10
+Vs = 1e+12
 Vd  = 1e+9
-ks =1e+9
+ks =1e+8
 kd = 1e+9
 #Pressures and friction6
 pt = 20e+6
