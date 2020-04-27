@@ -17,18 +17,18 @@ import emcee
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle 
-from main_lib import *
+from disconnected_lib import *
 import os
 import corner
 from shutil import copyfile
 discardval = 1
 thinval = 1
 
-path_results = '../../../../results/'
-pathrun = 'largecond'
-model_type = 'LF'
+path_results = '../../../../results/disc/'
+pathrun = 'test'
+model_type = 'UF'
 
-stations  = ['SDH']
+stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'
 flaglocation = 'N'      # This is the flag for locations priors, F for Uniform, N for Normal
 
@@ -95,18 +95,20 @@ elif Nst == 2:
     offxSamp = np.array([offx1],offx2)
     offySamp = np.array([offy1,offy2])
 elif Nst == 3:
+    
+    
     deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
     offxSamp = np.array([offx1,offx2,offx3])
     offySamp = np.array([offy1,offy2,offy3])    
 if model_type == 'UF':
-    txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_UF(tTilt,tGPS,
+    txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_disc(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                                               VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                                               x,y,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
 elif model_type == 'LF':
-    txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_LF(tTilt,tGPS,
+    txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_disc(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                                               VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                                               x,y,
@@ -131,7 +133,7 @@ for parameters in samples[np.random.randint(len(samples), size = 90)]:
         offxSamp = np.array([offx1,offx2,offx3])
         offySamp = np.array([offy1,offy2,offy3])    
     if model_type == 'UF':
-        txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
+        txMod,tyMod,GPSMod = DirectModelEmcee_inv_disc(tTilt,tGPS,
                         deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                         VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                         x,y,
@@ -139,7 +141,7 @@ for parameters in samples[np.random.randint(len(samples), size = 90)]:
                         rhog,const,S,nstation)
         
     elif model_type == 'LF':
-        txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
+        txMod,tyMod,GPSMod = DirectModelEmcee_inv_disc(tTilt,tGPS,
                         deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                         VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                         x,y,
