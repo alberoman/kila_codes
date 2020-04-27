@@ -24,7 +24,7 @@ from shutil import copyfile
 discardval = 1
 thinval = 1
 
-path_results = '../../../../results/'
+path_results = '../../../../results/conn/'
 pathrun = 'alpha'
 model_type = 'LF'
 

@@ -18,7 +18,7 @@ from multiprocessing import Pool
 import os
 import sys
 np.random.seed(1234567284)
-path_results = '../../../../results/'
+path_results = '../../../../results/conn/'
 
     
 
@@ -39,10 +39,10 @@ def parameters_init(mt):
     Ncycmax = 60
 
     if mt == 'UF':
-        bounds = np.array([[+8,10],[+9,+12],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[8,50],[0.5,2.0]])
+        bounds = np.array([[+8,10],[+9,+12],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,20],[0.5,2.0]])
         boundsLoc = np.array([[-1000,1000],[1200,2500],[500,1500],[-1500,+1500],[-1500,2500],[2000,4000]])
     elif mt == 'LF':                                                 
-        bounds = np.array([[+8,+12],[+8,+10],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[8,50],[0.5,2.0]])
+        bounds = np.array([[+8,+12],[+8,+10],[+8,+11],[8,11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,20],[0.5,2.0]])
         boundsLoc = np.array([[-1000,+1000],[-1000,1000],[2000,5000],[-500,0],[1500,2000],[500,1300]])
 
     bndtiltconst = 2000
