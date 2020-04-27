@@ -8,14 +8,14 @@ Created on Thu Feb 13 10:35:16 2020
 
 import numpy as np
 
-def TwoChambers_disc_timein(w0,par,pslip,tslipc,time,ps,t_x,x_data,N):
+def TwoChambers_disc_timein(w0,par,pslip,tslipc,time,ps,t_x,x_data,N,alpha):
     ps0 = w0
     r1,r3 = par
     tsegment = time[time >= tslipc] - tslipc
     
     pssegment = (ps0 + r3) * np.exp(-tsegment) - r3
     ps[time >= tslipc]= pssegment
-    x_data[t_x >= tslipc] = 2   / (1 + r1) * N
+    x_data[t_x >= tslipc] = 4 * alpha / (1 + r1) * N
     tslip = -np.log((pslip + r3)/(ps0 + r3))
     return tslip,ps,x_data
 
@@ -51,14 +51,15 @@ def DirectModelEmcee_inv_disc(tOrigTilt,tOrigGPS,
     PSLIP = - 2 * R1Samp * (1 - R5Samp)/(1 + R1Samp)
     TSLIPcum = 0
 
-    N_cycles =  ((1 + R1Samp)/ (2 * R1Samp) * R3Samp)-1
+    N_cycles =  ((1 + R1Samp)/ (4 * alphaSamp * R1Samp) * R3Samp)-1
     i  = 1
     w0 = [ps0]
     thresh = 70
     while i < N_cycles + 1 and i < thresh:
-        tslip,ps,gps = TwoChambers_disc_timein(w0,params,PSLIP,TSLIPcum,tOrigTilt,ps,tOrigGPS,gps,i)
-        ps0 =   + 2 / (1 + R1Samp) -2 * R1Samp * (1 - R5Samp)/(1 + R1Samp) * i
-        PSLIP =   - 2 * R1Samp * (1 - R5Samp)/(1 + R1Samp) * (i + 1)
+        tslip,ps,gps = TwoChambers_disc_timein(w0,params,PSLIP,TSLIPcum,tOrigTilt,ps,tOrigGPS,gps,i,alphaSamp)
+        ps0 =     + 4 * alphaSamp / (1 + R1Samp) -4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp) * i
+        PSLIP =   - 4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp) * (i + 1)
+        TSLIPcum = TSLIPcum + tslip
         TSLIPcum = TSLIPcum + tslip
         w0 = np.array([ps0])
         i = i + 1
