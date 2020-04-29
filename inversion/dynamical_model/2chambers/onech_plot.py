@@ -21,7 +21,7 @@ path_results = '../../../../results/onech/'
 pathrun = 'alpha'
 model_type = 'LF'
 
-stations  = ['UWD','SDH','IKI']
+stations  = ['UWD']
 date = '07-03-2018'
 flaglocation = 'N'      # This is the flag for locations priors, F for Uniform, N for Normal
 
@@ -89,7 +89,7 @@ elif Nst == 3:
     offxSamp = np.array([offx1,offx2,offx3])
     offySamp = np.array([offy1,offy2,offy3])    
 
-    txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_onech(tTilt,tGPS,
+txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_onech(tTilt,tGPS,
                                               offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,
                                               VsExpSamp,ksExpSamp,R5ExpSamp,R3Samp,condsSamp,alphaSamp,
                                               x,y,

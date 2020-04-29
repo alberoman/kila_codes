@@ -60,7 +60,6 @@ def DirectModelEmcee_inv_disc(tOrigTilt,tOrigGPS,
         ps0 =     + 4 * alphaSamp / (1 + R1Samp) -4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp) * i
         PSLIP =   - 4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp) * (i + 1)
         TSLIPcum = TSLIPcum + tslip
-        TSLIPcum = TSLIPcum + tslip
         w0 = np.array([ps0])
         i = i + 1
     pd = pd0 * np.exp(-phi * tOrigTilt)

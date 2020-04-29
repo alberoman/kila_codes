@@ -43,9 +43,8 @@ def DirectModelEmcee_inv_onech(tOrigTilt,tOrigGPS,
     ps = np.ones(len(tOrigTilt))
     gps = np.ones(len(tOrigGPS))
     ps0 = + 4 * alphaSamp / (1 + R1Samp)
-    PSLIP = - 2 * R1Samp * (1 - R5Samp)/(1 + R1Samp)
+    PSLIP = -4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp)
     TSLIPcum = 0
-
     N_cycles =  ((1 + R1Samp)/ (4 * alphaSamp * R1Samp) * R3Samp)-1
     i  = 1
     w0 = [ps0]
@@ -54,7 +53,6 @@ def DirectModelEmcee_inv_onech(tOrigTilt,tOrigGPS,
         tslip,ps,gps = TwoChambers_disc_timein(w0,params,PSLIP,TSLIPcum,tOrigTilt,ps,tOrigGPS,gps,i,alphaSamp)
         ps0 =     + 4 * alphaSamp / (1 + R1Samp) -4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp) * i
         PSLIP =   - 4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp) * (i + 1)
-        TSLIPcum = TSLIPcum + tslip
         TSLIPcum = TSLIPcum + tslip
         w0 = np.array([ps0])
         i = i + 1
@@ -102,10 +100,10 @@ def log_likelihood_onech(param,
                                               rhog,const,S,nstation)
     sigma2Tilt = tiltErr ** 2
     sigma2GPS = GPSErr ** 2
-    liketx = -0.5 * np.sum((txObs - txMod) ** 2 / sigma2Tilt,0)  -len(txObs)/ 2 * np.log(6.28 * sigma2Tilt**2)  
-    likety = -0.5 * np.sum((tyObs - tyMod) ** 2 / sigma2Tilt,0)  -len(tyObs)/ 2 * np.log(6.28 * sigma2Tilt**2)
+    liketx = -0.5 * np.sum((txObs - txMod) ** 2 / sigma2Tilt,0)  -len(txObs)/ 2 * np.log(6.28 * sigma2Tilt)  
+    likety = -0.5 * np.sum((tyObs - tyMod) ** 2 / sigma2Tilt,0)  -len(tyObs)/ 2 * np.log(6.28 * sigma2Tilt)
     liketilt =  + liketx + likety 
-    likeGPS = -0.5 * np.sum((GPSObs - GPSMod) ** 2 / sigma2GPS) -len(GPSObs)/ 2 * np.log(6.28 * sigma2GPS**2)
+    likeGPS = -0.5 * np.sum((GPSObs - GPSMod) ** 2 / sigma2GPS) -len(GPSObs)/ 2 * np.log(6.28 * sigma2GPS)
      
     return liketilt + likeGPS
 
@@ -135,9 +133,9 @@ def log_prior_onech(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,locTr
         conditions.append(all(np.abs(offs)<bndtiltconst))
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
         if all(conditions):
-            logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
-            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
-            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[2]))-0.5*(dsSamp-locTr[2])**2/locEr[2]**2
+            logprob =   -0.5 * np.log(6.28 *locEr[0]**2) -0.5*(xsSamp-locTr[0])**2/locEr[0]**2
+            logprob = logprob -0.5  * np.log(6.28 *locEr[1]**2) -0.5*(ysSamp-locTr[1])**2/locEr[1]**2
+            logprob = logprob -0.5  * np.log(6.28*locEr[2]**2) -0.5*(dsSamp-locTr[2])**2/locEr[2]**2
 
             return logprob
         return -np.inf
