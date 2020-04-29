@@ -1,32 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sat Apr 11 10:23:01 2020
+Created on Wed Apr 29 11:35:08 2020
 
 @author: aroman
 """
 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Mar 27 06:36:49 2020
-
-@author: aroman
-"""
 import emcee
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle 
-from disconnected_lib import *
+from onech_lib import *
 import os
 import corner
 from shutil import copyfile
-discardval = 10000
+discardval = 1
 thinval = 1
 
-path_results = '../../../../results/disc/'
+path_results = '../../../../results/onech/'
 pathrun = 'alpha'
-model_type = 'UF'
+model_type = 'LF'
 
 stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'
@@ -66,11 +59,8 @@ np.random.seed(1234)
 
 Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0= pickle.load(open(pathgg + 'data.pickle','rb'))
 a = pickle.load(open(pathgg + 'parameters.pickle','rb'))
-if len(a)== 17:
-    bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = a
-    boundsLoc = 0
-elif len(a)== 18:
-    bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = a
+
+bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,locErrFact,a_parameter,thin,nwalkers,ls,mu,ndim,const,S,rhog = a
 filename = 'progress_temp.h5'
 #Getting sampler info
 #nwalkers,ndim = reader.shape
@@ -87,32 +77,23 @@ nwalkers,ndim = reader.shape
 samples = reader.get_chain(flat = True,discard = discardval)
 parmax = samples[np.argmax(reader.get_log_prob(flat = True,discard = discardval))]
 if Nst == 1:
-    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp = parmax
+    offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,VsExpSamp,ksExpSamp,R5ExpSamp,R3Samp,condsSamp,alphaSamp = parmax
     offxSamp = np.array([offx1])
     offySamp = np.array([offy1])
 elif Nst == 2:
-    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp = parmax
+    offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSam,VsExpSamp,ksExpSamp,R5ExpSamp,R3Samp,condsSamp,alphaSamp = parmax
     offxSamp = np.array([offx1],offx2)
     offySamp = np.array([offy1,offy2])
 elif Nst == 3:
-    
-    
-    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp = parmax
+    offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,VsExpSamp,ksExpSamp,R5ExpSamp,R3Samp,condsSamp,alphaSamp = parmax
     offxSamp = np.array([offx1,offx2,offx3])
     offySamp = np.array([offy1,offy2,offy3])    
-if model_type == 'UF':
-    txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_disc(tTilt,tGPS,
-                                              deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
+
+    txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_onech(tTilt,tGPS,
+                                              offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,
+                                              VsExpSamp,ksExpSamp,R5ExpSamp,R3Samp,condsSamp,alphaSamp,
                                               x,y,
-                                              ls,ld,mu,
-                                              rhog,const,S,nstation)
-elif model_type == 'LF':
-    txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_disc(tTilt,tGPS,
-                                              deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
-                                              x,y,
-                                              ls,ld,mu,
+                                              ls,mu,
                                               rhog,const,S,nstation)
 txmodlist = []
 tymodlist = []
@@ -121,32 +102,24 @@ counter = 0
 samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
 for parameters in samples[np.random.randint(len(samples), size = 90)]:
     if Nst == 1:
-        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp= parameters
+        offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,VsExpSamp,ksExpSamp,R5ExpSamp,R3Samp,condsSamp,alphaSamp = parameters
         offxSamp = np.array([offx1])
         offySamp = np.array([offy1])
     elif Nst == 2:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp = parameters
+        offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSam,VsExpSamp,ksExpSamp,R5ExpSamp,R3Samp,condsSamp,alphaSamp = parameters
         offxSamp = np.array([offx1],offx2)
         offySamp = np.array([offy1,offy2])
     elif Nst == 3:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp = parameters
+        offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,VsExpSamp,ksExpSamp,R5ExpSamp,R3Samp,condsSamp,alphaSamp = parameters
         offxSamp = np.array([offx1,offx2,offx3])
         offySamp = np.array([offy1,offy2,offy3])    
-    if model_type == 'UF':
-        txMod,tyMod,GPSMod = DirectModelEmcee_inv_disc(tTilt,tGPS,
-                        deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                        VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
-                        x,y,
-                        ls,ld,mu,
-                        rhog,const,S,nstation)
-        
-    elif model_type == 'LF':
-        txMod,tyMod,GPSMod = DirectModelEmcee_inv_disc(tTilt,tGPS,
-                        deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                        VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,aphaSamp,
-                        x,y,
-                        ls,ld,mu,
-                        rhog,const,S,nstation)
+
+    txMod,tyMod,GPSMod = DirectModelEmcee_inv_onech(tTilt,tGPS,
+                                              offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,
+                                              VsExpSamp,ksExpSamp,R5ExpSamp,R3Samp,condsSamp,alphaSamp,
+                                              x,y,
+                                              ls,mu,
+                                              rhog,const,S,nstation)
     counter = counter + 1   
     txmodlist.append(txMod)
     tymodlist.append(tyMod)
@@ -203,8 +176,8 @@ plt.savefig(pathfig + 'chains.pdf')
 plt.close('all')
 samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
 plt.figure()
-corner.corner(samples,truths = parmax)
-plt.savefig(pathfig + 'hist.pdf')
+#corner.corner(samples,truths = parmax)
+#plt.savefig(pathfig + 'hist.pdf')
 plt.close('all')
 
 os.remove(pathgg + 'progress_temp.h5')

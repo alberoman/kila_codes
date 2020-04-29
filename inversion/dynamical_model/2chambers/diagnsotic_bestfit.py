@@ -17,7 +17,7 @@ import emcee
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle 
-from main_lib import *
+from connected_lib import *
 import os
 import corner
 from shutil import copyfile
@@ -25,7 +25,7 @@ discardval = 1
 thinval = 1
 
 path_results = '../../../../results/'
-pathrun = 'superlargecond/'
+pathrun = 'alpha/'
 model_type = 'LF'
 
 stations  = ['UWD','SDH','IKI']
@@ -87,29 +87,29 @@ nwalkers,ndim = reader.shape
 samples = reader.get_chain(flat = True,discard = discardval)
 parmax = samples[np.argmax(reader.get_log_prob(flat = True,discard = discardval))]
 if Nst == 1:
-    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
+    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp = parmax
     offxSamp = np.array([offx1])
     offySamp = np.array([offy1])
 elif Nst == 2:
-    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
+    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp = parmax
     offxSamp = np.array([offx1],offx2)
     offySamp = np.array([offy1,offy2])
 elif Nst == 3:
-    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
+    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp = parmax
     offxSamp = np.array([offx1,offx2,offx3])
     offySamp = np.array([offy1,offy2,offy3])
 #tTilt= np.linspace(0,np.max(tTilt),10000)    
 if model_type == 'UF':
     txModbest,tyModbest,ps,pd,coeffxs,coeffys,coeffxd,coeffyd = DirectModelEmcee_inv_UF_diagno(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
+                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
                                               x,y,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
 elif model_type == 'LF':
-    txModbest,tyModbest,ps,pd = DirectModelEmcee_inv_LF_diagno(tTilt,tGPS,
+    txModbest,tyModbest,ps,pd,coeffxs,coeffys,coeffxd,coeffyd = DirectModelEmcee_inv_LF_diagno(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
+                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
                                               x,y,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)

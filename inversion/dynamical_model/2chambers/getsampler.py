@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Mon Apr 27 16:46:38 2020
+
+@author: aroman
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
 Created on Fri Feb 14 14:21:02 2020
 
 @author: aroman
@@ -22,7 +30,7 @@ path_results = '../../../../results/conn/'
 
     
 
-pathrun = 'acceptance'
+pathrun = 'alpha'
 
 model_type = 'LF'
 
@@ -114,10 +122,8 @@ if  os.path.isfile(pathgg + 'progress.h5'):
     reader = emcee.backends.HDFBackend(pathgg + 'progress.h5', read_only=True)
     niter  = reader.iteration
     print('The current run is: ',os.path.abspath(pathgg))
-    answer = input('Found past run with ' + str(niter) +' samples. Do you want to continue this run? Enter the number of iteration that additionally you want to do: ')
-    moreiter = int(answer)
-    print('Restarting!!!!')
-    nwalkers,ndim = reader.shape
+    answer = print('Found past run with ' + str(niter) +' samples)
+
     filename = pathgg + "progress.h5"
     backend = emcee.backends.HDFBackend(filename)
     move = emcee.moves.StretchMove(a=a_parameter)
@@ -136,37 +142,4 @@ if  os.path.isfile(pathgg + 'progress.h5'):
                                                   rhog,const,S,
                                                   tTilt,tGPS,tx,ty,GPS,
                                                   tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
-        sampler.run_mcmc(None, moreiter, progress=True,thin = thin)
-
-
-
-else:
-    print('The put of the current run is: ',pathgg)
-    niter = input('How many iteration you want to run? ')
-    bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = parameters_init(model_type)
-    Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0 = preparation(stations,date,locErrFact,model_type)
-    pos,nwalkers,ndim = walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,bndp0,Nst,model_type,flaglocation)
-    pickle.dump((Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0),open(pathgg + 'data.pickle','wb'))
-    pickle.dump((bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog),open(pathgg + 'parameters.pickle','wb'))
-    filename = pathgg + "progress.h5"
-    backend = emcee.backends.HDFBackend(filename)
-    move = emcee.moves.StretchMove(a=a_parameter)
-    with Pool() as pool:
-        if model_type == 'UF':
-            sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
-                                        args=(x,y,
-                                            ls,ld,mu,
-                                            rhog,const,S,
-                                            tTilt,tGPS,tx,ty,GPS,
-                                            tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
-        elif model_type == 'LF':
-            sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_LF,
-                                        args=(x,y,
-                                            ls,ld,mu,
-                                            rhog,const,S,
-                                            tTilt,tGPS,tx,ty,GPS,
-                                            tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
-       
-        print('Running main sampling')
-        sampler.run_mcmc(pos,niter, progress = True,thin = thin)
-        
+  

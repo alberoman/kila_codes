@@ -218,6 +218,82 @@ def DirectModelEmcee_inv_LF(tOrigTilt,tOrigGPS,
 
 
 
+def DirectModelEmcee_inv_LF_diagno(tOrigTilt,tOrigGPS,
+                         deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
+                         VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
+                         Xst,Yst,
+                         ls,ld,mu,
+                         rhog,cs,S,nstation):
+
+    VsSamp = 10**VsExpSamp
+    VdSamp  = 10**VdExpSamp
+    ksSamp = 10**ksExpSamp
+    kdSamp = 10**kdExpSamp
+    R5Samp =0
+    
+    R1Samp = rhog * VdSamp /(kdSamp*S)
+    T1 = (condsSamp / conddSamp )**4 * ld /ls
+    PHI = kdSamp /ksSamp * VsSamp / VdSamp
+    params = [T1,PHI,R3Samp] #R1 is the ratio of the hydraulic parameters (for high values the top conduit is more efficient)
+    tstar = VsSamp * 8 * mu * ld / (ksSamp * 3.14 * conddSamp**4)
+    xstar = pspdSamp * VdSamp / (kdSamp * S)
+    deltap0adim = deltap0Samp / pspdSamp
+
+    #Careful if you want to change to the UF version (this is LF)
+    #xstar should be 
+    #xstar = taud * Vs / (ks * S**2)
+    un_plus_R1 = 1 + R1Samp
+    A = np.sqrt(T1**2 - 2*T1*PHI + 2*T1 + PHI**2 + 2*PHI + 1)
+    B = -T1/2 - PHI/2 - 1./2
+    C =  np.sqrt(4*PHI + (-T1 + PHI - 1)**2)/2    
+    D = T1/2 - PHI /2 + 1./2
+    params = [R1Samp,R3Samp,R5Samp,T1,PHI,A,B,C,D]
+   
+    
+    
+    tOrigGPS = tOrigGPS /tstar
+    tOrigTilt = tOrigTilt / tstar
+    ps = np.ones(len(tOrigTilt))
+    pd = np.ones(len(tOrigTilt))
+    gps = np.ones(len(tOrigGPS))
+    PD0 =   4 * alphaSamp /(1 + R1Samp)
+    PSLIP = - 4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp)
+    TSLIP = 0
+    TSLIP_seed = 1
+    #tseg,tslip,PS,PD,ps0 = TwoChambers_LF(np.array([0.1,0.1]),params,0,TSLIP,TSLIP_seed) # Calculate ps at the first cycle
+    PS0 =  PD0 + deltap0adim
+    w0 = np.array([PS0,PD0])
+    TSLIP = 0
+    N_cycles = ((1 + R1Samp)/ (4 * alphaSamp * R1Samp) * R3Samp)-1
+    i  = 1
+    thresh = 80
+    while i < N_cycles + 1 and i < thresh:
+        tslip,ps,pd,ps0,gps = TwoChambers_LF_timein(w0,params,PSLIP,TSLIP,tOrigTilt,ps,pd,tOrigGPS,gps,i,alphaSamp)
+        PD0 =   + 4 * alphaSamp / (1 + R1Samp) -4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp) * i
+        PS0 = ps0
+        PSLIP =   - 4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp) * (i + 1)
+        TSLIP = TSLIP + tslip
+        w0 = np.array([PS0,PD0])
+        i = i + 1
+    ps = ps * pspdSamp
+    pd = pd * pspdSamp
+    coeffxs = cs * dsSamp * (Xst -  xsSamp) / (dsSamp**2 + (Xst -  xsSamp)**2 + (Yst -  ysSamp)**2 )**(5./2) 
+    coeffys = cs * dsSamp * (Yst -  ysSamp) / (dsSamp**2 + (Xst -  xsSamp)**2 + (Yst -  ysSamp)**2 )**(5./2) 
+    coeffxd = cs * ddSamp * (Xst -  xdSamp) / (ddSamp**2 + (Xst -  xdSamp)**2 + (Yst -  ydSamp)**2 )**(5./2) 
+    coeffyd = cs * ddSamp * (Yst -  ydSamp) / (ddSamp**2 + (Xst -  xdSamp)**2 + (Yst -  ydSamp)**2 )**(5./2) 
+    txMod = coeffxs * VsSamp * ps + coeffxd * VdSamp * pd
+    tyMod = coeffys * VsSamp * ps + coeffyd * VdSamp * pd
+    #dtxMod = np.diff(txMod[j]) / np.diff(tTiltList[j]))
+    #dtyMod.append(np.diff(tyMod[j]) / np.diff(tTiltList[j]))
+    
+    gpsMod = gps * xstar
+    tOrigTilt = tOrigTilt / tstar
+    tOrigGPS = tOrigGPS * tstar
+    for i in range((np.max(nstation) + 1)):
+        txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]*1e-6
+        tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]*1e-6
+    gpsMod = gpsMod  + offGPSSamp
+    return txMod,tyMod,ps,pd,coeffxs,coeffys,coeffxd,coeffyd#,dtxMod, dtyMod
 
 
 def log_likelihood_UF(param,

@@ -127,7 +127,7 @@ for parameters in samples[np.random.randint(len(samples), size = 90)]:
         offxSamp = np.array([offx1],offx2)
         offySamp = np.array([offy1,offy2])
     elif Nst == 3:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp, alphaSamp = parameters
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,FdsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp, alphaSamp = parameters
         offxSamp = np.array([offx1,offx2,offx3])
         offySamp = np.array([offy1,offy2,offy3])    
     if model_type == 'UF':
@@ -201,8 +201,8 @@ plt.savefig(pathfig + 'chains.pdf')
 plt.close('all')
 samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
 plt.figure()
-corner.corner(samples,truths = parmax)
-plt.savefig(pathfig + 'hist.pdf')
+#corner.corner(samples,truths = parmax)
+#plt.savefig(pathfig + 'hist.pdf')
 plt.close('all')
 
 os.remove(pathgg + 'progress_temp.h5')
