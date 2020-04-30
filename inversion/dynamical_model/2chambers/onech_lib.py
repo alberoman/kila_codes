@@ -70,7 +70,52 @@ def DirectModelEmcee_inv_onech(tOrigTilt,tOrigGPS,
     return txMod,tyMod,gpsMod#,dtxMod, dtyMod
 
 
+def DirectModelEmcee_inv_onech_diagno(tOrigTilt,tOrigGPS,
+                         offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,
+                         VsExpSamp,ksExpSamp,pspdSamp,R3Samp,condsSamp,alphaSamp,
+                         Xst,Yst,
+                         ls,mu,
+                         rhog,cs,S,nstation):
+                         
+    VsSamp = 10**VsExpSamp
+    ksSamp = 10**ksExpSamp
+    R5Samp =0
+    
+    R1Samp = rhog * VsSamp /(ksSamp*S)
 
+    tstar = VsSamp * 8 * mu * ls / (ksSamp * 3.14 * condsSamp**4)
+    xstar = pspdSamp * VsSamp / (ksSamp * S) 
+    tOrigGPS = tOrigGPS /tstar
+    tOrigTilt = tOrigTilt / tstar
+    params = [R1Samp,R3Samp]
+    ps = np.ones(len(tOrigTilt))
+    gps = np.ones(len(tOrigGPS))
+    ps0 = + 4 * alphaSamp / (1 + R1Samp)
+    PSLIP = -4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp)
+    TSLIPcum = 0
+    N_cycles =  ((1 + R1Samp)/ (4 * alphaSamp * R1Samp) * R3Samp)-1
+    i  = 1
+    w0 = [ps0]
+    thresh = 70
+    while i < N_cycles + 1 and i < thresh:
+        tslip,ps,gps = TwoChambers_disc_timein(w0,params,PSLIP,TSLIPcum,tOrigTilt,ps,tOrigGPS,gps,i,alphaSamp)
+        ps0 =     + 4 * alphaSamp / (1 + R1Samp) -4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp) * i
+        PSLIP =   - 4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp) * (i + 1)
+        TSLIPcum = TSLIPcum + tslip
+        w0 = np.array([ps0])
+        i = i + 1
+    ps = ps * pspdSamp
+    coeffxs = cs * dsSamp * (Xst -  xsSamp) / (dsSamp**2 + (Xst -  xsSamp)**2 + (Yst -  ysSamp)**2 )**(5./2) 
+    coeffys = cs * dsSamp * (Yst -  ysSamp) / (dsSamp**2 + (Xst -  xsSamp)**2 + (Yst -  ysSamp)**2 )**(5./2) 
+    txMod = coeffxs * VsSamp * ps 
+    tyMod = coeffys * VsSamp * ps 
+    gpsMod = gps * xstar
+    tOrigGPS = tOrigGPS * tstar
+    for i in range((np.max(nstation) + 1)):
+        txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]*1e-6
+        tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]*1e-6
+    gpsMod = gpsMod  + offGPSSamp
+    return txMod,tyMod,gpsMod,ps#,dtxMod, dtyMod
 
 
 def log_likelihood_onech(param,
@@ -150,7 +195,7 @@ def log_prior_onech(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,locTr
         conditions.append(bounds[6,0] < condsSamp < bounds[6,1])
         conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
         conditions.append(all(np.abs(offs)<bndtiltconst))
-        conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
+        conditions.append(-bndGPSconst < offGPSSamp < 0)
         conditions.append(boundsLoc[0][0]< xsSamp < boundsLoc[0][1])
         conditions.append(boundsLoc[1][0]< ysSamp < boundsLoc[1][1])
         conditions.append(boundsLoc[2][0]< dsSamp < boundsLoc[2][1])

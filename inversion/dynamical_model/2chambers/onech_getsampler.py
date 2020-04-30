@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Wed Apr 29 17:38:32 2020
+
+@author: aroman
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
 Created on Tue Apr 28 10:47:26 2020
 
 @author: aroman
@@ -60,6 +68,7 @@ def parameters_init(mt):
     
     a_parameter = 5
     thin = 10
+    
     nwalkers = 64
 
     rho = 2600
@@ -95,16 +104,6 @@ pathgg = pathtrunk + pathrun
 pathgg  =  pathgg + '/'
 pathgg = path_results + pathgg
 
-
-if not os.path.exists(pathgg):
-    os.makedirs(pathgg)
-    descr =input('Briefly describe the run: ')
-    f =  open(pathgg + 'description.txt','w')
-    f.write(descr)
-    f.close()
-else:
-    print('Directory exists! CHeck that everything is ok!')
-    
 f = open(path_results+'dir_current_run.txt','w')
 f.write(os.path.abspath(pathgg))
 f.close()
@@ -121,7 +120,6 @@ if  os.path.isfile(pathgg + 'progress.h5'):
     print('The current run is: ',os.path.abspath(pathgg))
     answer = input('Found past run with ' + str(niter) +' samples. Do you want to continue this run? Enter the number of iteration that additionally you want to do: ')
     moreiter = int(answer)
-    print('Restarting!!!!')
     nwalkers,ndim = reader.shape
     filename = pathgg + "progress.h5"
     backend = emcee.backends.HDFBackend(filename)
@@ -129,37 +127,7 @@ if  os.path.isfile(pathgg + 'progress.h5'):
     with Pool() as pool:
         sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_onech,
                                         args=(x,y,
-                                              ls,ld,mu,
+                                              ls,mu,
                                               rhog,const,S,
                                               tTilt,tGPS,tx,ty,GPS,
                                               tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
-      
-        sampler.run_mcmc(None, moreiter, progress=True,thin = thin)
-
-
-
-else:
-    print('The put of the current run is: ',pathgg)
-    niter = input('How many iteration you want to run? ')
-    bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,locErrFact,a_parameter,thin,nwalkers,ls,mu,ndim,const,S,rhog = parameters_init(model_type)
-    Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0 = preparation(stations,date,locErrFact,model_type)
-    locTruth = locTruth[:3]
-    locErr = locErr[:3]
-    pos,nwalkers,ndim = walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,Nst,model_type,flaglocation)
-    pickle.dump((Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0),open(pathgg + 'data.pickle','wb'))
-    pickle.dump((bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,locErrFact,a_parameter,thin,nwalkers,ls,mu,ndim,const,S,rhog),open(pathgg + 'parameters.pickle','wb'))
-    filename = pathgg + "progress.h5"
-    backend = emcee.backends.HDFBackend(filename)
-    move = emcee.moves.StretchMove(a=a_parameter)
-    with Pool() as pool:
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_onech,
-                                    args=(x,y,
-                                        ls,mu,
-                                        rhog,const,S,
-                                        tTilt,tGPS,tx,ty,GPS,
-                                        tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
-  
-       
-        print('Running main sampling')
-        sampler.run_mcmc(pos,niter, progress = True,thin = thin)
-        

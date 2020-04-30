@@ -21,7 +21,7 @@ path_results = '../../../../results/onech/'
 pathrun = 'alpha'
 model_type = 'LF'
 
-stations  = ['UWD']
+stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'
 flaglocation = 'N'      # This is the flag for locations priors, F for Uniform, N for Normal
 
