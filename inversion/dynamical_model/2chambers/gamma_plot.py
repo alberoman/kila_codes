@@ -10,7 +10,7 @@ import emcee
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle 
-from connected_lib import *
+from gamma_lib import *
 import os
 import corner
 from shutil import copyfile
@@ -18,7 +18,7 @@ discardval = 1
 thinval = 1
 
 path_results = '../../../../results/gamma/'
-pathrun = 'gamma'
+pathrun = 'test'
 model_type = 'LF'
 
 stations  = ['UWD','SDH','IKI']
@@ -94,14 +94,14 @@ elif Nst == 3:
 if model_type == 'UF':
     txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_UF(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
+                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,gammaSamp,
                                               x,y,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
 elif model_type == 'LF':
     txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_LF(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
+                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,gammaSamp,
                                               x,y,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
@@ -126,7 +126,7 @@ for parameters in samples[np.random.randint(len(samples), size = 90)]:
     if model_type == 'UF':
         txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
                         deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                        VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
+                        VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,gammaSamp,
                         x,y,
                         ls,ld,mu,
                         rhog,const,S,nstation)
@@ -134,7 +134,7 @@ for parameters in samples[np.random.randint(len(samples), size = 90)]:
     elif model_type == 'LF':
         txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
                         deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                        VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
+                        VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,gammaSamp,
                         x,y,
                         ls,ld,mu,
                         rhog,const,S,nstation)
