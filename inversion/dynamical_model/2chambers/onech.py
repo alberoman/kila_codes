@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Apr 28 10:47:26 2020
-
-@author: aroman
-"""
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
 Created on Fri Feb 14 14:21:02 2020
 
 @author: aroman
@@ -46,19 +38,19 @@ def parameters_init(mt):
     Ncycmax = 60
 
     if mt == 'UF':
-        bounds = np.array([[+8,+11],[+8,+11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[0.5,2]])
+        bounds = np.array([[+8,12],[+8,+11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[0.5,2]])
         boundsLoc = np.array([[-1000,1000],[1200,2500],[500,1500],[-1500,+1500],[-1500,2500],[2000,4000]])
     elif mt == 'LF':                                                 
-        bounds = np.array([[+8,+11],[+8,+11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[0.5,2]])
+        bounds = np.array([[+8,+12],[+8,+11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[0.5,2]])
         boundsLoc = np.array([[-1000,+1000],[-1000,1000],[2000,5000],[-500,0],[1500,2000],[500,1300]])
 
     bndtiltconst = 2000
-    bndGPSconst = 70
+    bndGPSconst = 200
     tiltErr = 1e-5
     GPSErr = 1e-2
     locErrFact = 5
     
-    a_parameter = 5
+    a_parameter = 2
     thin = 10
     nwalkers = 64
 
@@ -112,10 +104,10 @@ if  os.path.isfile(pathgg + 'progress.h5'):
     Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0= pickle.load(open(pathgg + 'data.pickle','rb'))
     a = pickle.load(open(pathgg + 'parameters.pickle','rb'))
     if len(a)== 17:
-        bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,locErrFact,a_parameter,thin,nwalkers,ls,mu,ndim,const,S,rhog = a
+        bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = a
         boundsLoc = 0
     elif len(a)== 18:
-        bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,locErrFact,a_parameter,thin,nwalkers,ls,mu,ndim,const,S,rhog = a
+        bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = a
     reader = emcee.backends.HDFBackend(pathgg + 'progress.h5', read_only=True)
     niter  = reader.iteration
     print('The current run is: ',os.path.abspath(pathgg))
@@ -127,13 +119,20 @@ if  os.path.isfile(pathgg + 'progress.h5'):
     backend = emcee.backends.HDFBackend(filename)
     move = emcee.moves.StretchMove(a=a_parameter)
     with Pool() as pool:
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_onech,
-                                        args=(x,y,
-                                              ls,ld,mu,
-                                              rhog,const,S,
-                                              tTilt,tGPS,tx,ty,GPS,
-                                              tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
-      
+        if model_type == 'UF':
+            sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
+                                            args=(x,y,
+                                                  ls,ld,mu,
+                                                  rhog,const,S,
+                                                  tTilt,tGPS,tx,ty,GPS,
+                                                  tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
+        elif model_type =='LF':
+            sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_LF,
+                                            args=(x,y,
+                                                  ls,ld,mu,
+                                                  rhog,const,S,
+                                                  tTilt,tGPS,tx,ty,GPS,
+                                                  tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
         sampler.run_mcmc(None, moreiter, progress=True,thin = thin)
 
 
@@ -152,13 +151,12 @@ else:
     backend = emcee.backends.HDFBackend(filename)
     move = emcee.moves.StretchMove(a=a_parameter)
     with Pool() as pool:
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_onech,
-                                    args=(x,y,
-                                        ls,mu,
-                                        rhog,const,S,
-                                        tTilt,tGPS,tx,ty,GPS,
-                                        tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
-  
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability,
+                                        args=(x,y,
+                                            ls,mu,
+                                            rhog,const,S,
+                                            tTilt,tGPS,tx,ty,GPS,
+                                            tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)
        
         print('Running main sampling')
         sampler.run_mcmc(pos,niter, progress = True,thin = thin)

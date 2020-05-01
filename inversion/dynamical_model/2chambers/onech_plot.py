@@ -21,7 +21,7 @@ path_results = '../../../../results/onech/'
 pathrun = 'alpha'
 model_type = 'LF'
 
-stations  = ['UWD','SDH','IKI']
+stations  = ['UWD']
 date = '07-03-2018'
 flaglocation = 'N'      # This is the flag for locations priors, F for Uniform, N for Normal
 
@@ -60,7 +60,7 @@ np.random.seed(1234)
 Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0= pickle.load(open(pathgg + 'data.pickle','rb'))
 a = pickle.load(open(pathgg + 'parameters.pickle','rb'))
 
-bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,locErrFact,a_parameter,thin,nwalkers,ls,mu,ndim,const,S,rhog = a
+bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = a
 filename = 'progress_temp.h5'
 #Getting sampler info
 #nwalkers,ndim = reader.shape
@@ -89,7 +89,7 @@ elif Nst == 3:
     offxSamp = np.array([offx1,offx2,offx3])
     offySamp = np.array([offy1,offy2,offy3])    
 
-txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_onech(tTilt,tGPS,
+txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv(tTilt,tGPS,
                                               offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,
                                               VsExpSamp,ksExpSamp,R5ExpSamp,R3Samp,condsSamp,alphaSamp,
                                               x,y,
@@ -114,7 +114,7 @@ for parameters in samples[np.random.randint(len(samples), size = 90)]:
         offxSamp = np.array([offx1,offx2,offx3])
         offySamp = np.array([offy1,offy2,offy3])    
 
-    txMod,tyMod,GPSMod = DirectModelEmcee_inv_onech(tTilt,tGPS,
+    txMod,tyMod,GPSMod = DirectModelEmcee_inv(tTilt,tGPS,
                                               offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,
                                               VsExpSamp,ksExpSamp,R5ExpSamp,R3Samp,condsSamp,alphaSamp,
                                               x,y,
@@ -176,8 +176,8 @@ plt.savefig(pathfig + 'chains.pdf')
 plt.close('all')
 samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
 plt.figure()
-#corner.corner(samples,truths = parmax)
-#plt.savefig(pathfig + 'hist.pdf')
+corner.corner(samples,truths = parmax)
+plt.savefig(pathfig + 'hist.pdf')
 plt.close('all')
 
 os.remove(pathgg + 'progress_temp.h5')
