@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Sun May  3 14:36:15 2020
+
+@author: aroman
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
 Created on Fri May  1 13:43:18 2020
 
 @author: aroman
@@ -99,104 +107,42 @@ if model_type == 'UF':
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
 elif model_type == 'LF':
-    txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_LF(tTilt,tGPS,
+    txModbest,tyModbest,GPSModbest,ps,pd,coeffxs,coeffxd,coeffys,coeffyd = DirectModelEmcee_inv_LF_diagno(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                                               VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,gammaSamp,
                                               x,y,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
-txmodlist = []
-tymodlist = []
-GPSmodlist = []
-counter = 0
-samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
-for parameters in samples[np.random.randint(len(samples), size = 90)]:
-    if Nst == 1:
-        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp,gammaSamp = parameters
-        offxSamp = np.array([offx1])
-        offySamp = np.array([offy1])
-    elif Nst == 2:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp,gammaSamp = parameters
-        offxSamp = np.array([offx1],offx2)
-        offySamp = np.array([offy1,offy2])
-    elif Nst == 3:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,FdsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp, alphaSamp,gammaSamp = parameters
-        offxSamp = np.array([offx1,offx2,offx3])
-        offySamp = np.array([offy1,offy2,offy3])    
-    if model_type == 'UF':
-        txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
-                        deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                        VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,gammaSamp,
-                        x,y,
-                        ls,ld,mu,
-                        rhog,const,S,nstation)
-        
-    elif model_type == 'LF':
-        txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
-                        deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                        VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,gammaSamp,
-                        x,y,
-                        ls,ld,mu,
-                        rhog,const,S,nstation)
-    counter = counter + 1   
-    txmodlist.append(txMod)
-    tymodlist.append(tyMod)
-    GPSmodlist.append(GPSMod)
-        
-txspread = np.std(txmodlist,axis =0)
-txmed = np.median(txmodlist,axis =0)
-tyspread = np.std(tymodlist,axis =0)
-tymed = np.median(tymodlist,axis =0)
-GPSspread = np.std(GPSmodlist,axis =0)
-GPSmed = np.median(GPSmodlist,axis =0)
-for i in range(len(stations)):
-    txStation = tx[nstation == i]
-    tyStation = ty[nstation == i]
-    txModbestStation= txModbest[ nstation == i]
-    tyModbestStation= tyModbest[ nstation == i]
-    txsprStation = txspread[nstation == i]
-    txmedStation = txmed[nstation == i]
-    tysprStation = tyspread[nstation == i]
-    tymedStation = tymed[nstation == i]
-    tTiltStation = tTilt[nstation == i]
-    plt.figure()
-    plt.plot(tTiltStation / (3600 * 24),txStation,'b')
-    plt.plot(tTiltStation / (3600 * 24),txModbestStation,'r')
-    plt.fill_between(tTiltStation /(3600 * 24),txmedStation-txsprStation,txmedStation + txsprStation,color='grey',alpha=0.5)
-    plt.xlabel('Time [Days]')
-    plt.ylabel('Tilt-x ' + stations[i])
-    plt.savefig(pathfig + 'tx_' + stations[i] + '.pdf')
-    plt.close('all')
-    plt.figure()
-    plt.plot(tTiltStation / (3600 * 24),tyStation,'b')
-    plt.plot(tTiltStation / (3600 * 24),tyModbestStation,'r')
-    plt.fill_between(tTiltStation / (3600 * 24),tymedStation - tysprStation,tymedStation + tysprStation,color='grey',alpha=0.5)
-    plt.xlabel('Time [Days]')
-    plt.ylabel('Tilt-y ' + stations[i])
-    plt.savefig(pathfig + 'ty_' + stations[i] + '.pdf')
-    plt.close('all')
+plt.figure()
+txd = coeffxd[nstation==0] * 10** VdExpSamp * pd[nstation == 0]
+txs = coeffxs[nstation==0] * 10** VsExpSamp * ps[nstation == 0]
+plt.plot(tTilt[nstation==0],txd,'b')
+plt.plot(tTilt[nstation==0],txs,'r')
+plt.legend(['HLM','SCR'])
+
+plt.title('UWD-x')
+plt.figure()
+txd = coeffxd[nstation==1] * 10** VdExpSamp * pd[nstation == 1]
+txs = coeffxs[nstation==1] * 10** VsExpSamp * ps[nstation == 1]
+plt.plot(tTilt[nstation==1],txd,'b')
+plt.plot(tTilt[nstation==1],txs,'r')
+plt.legend(['HLM','SCR'])
+
+plt.title('SDH-x')
 
 plt.figure()
-plt.plot(tGPS /(3600 * 24),GPS,'b')
-plt.plot(tGPS / (3600 * 24),GPSModbest,'r')
-plt.fill_between(tGPS/ (3600 * 24),GPSmed - GPSspread,GPSmed + GPSspread,color='grey',alpha=0.5)
-plt.xlabel('Time [Days]')
-plt.ylabel('Piston displacement [m]')
-plt.savefig(pathfig + 'GPS.pdf')
-samples = reader.get_chain(thin = thinval,discard = discardval)
-fig, axes = plt.subplots(ndim, figsize=(10, 7), sharex=True)
-for i in range(ndim):
-    ax = axes[i]
-    ax.plot(samples[:, :, i], "k", alpha=0.3)
-    ax.set_xlim(0, len(samples))
-    ax.yaxis.set_label_coords(-0.1, 0.5)
-plt.savefig(pathfig + 'chains.pdf')
-plt.close('all')
-samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
+tyd = coeffyd[nstation==0] * 10** VdExpSamp * pd[nstation == 0]
+tys = coeffys[nstation==0] * 10** VsExpSamp * ps[nstation == 0]
+plt.plot(tTilt[nstation==0],tyd,'b')
+plt.plot(tTilt[nstation==0],tys,'r')
+plt.title('UWD-y')
+plt.legend(['HLM','SCR'])
+
 plt.figure()
-corner.corner(samples,truths = parmax)
-plt.savefig(pathfig + 'hist.pdf')
-plt.close('all')
-
-os.remove(pathgg + 'progress_temp.h5')
-
+tyd = coeffyd[nstation==1] * 10** VdExpSamp * pd[nstation == 1]
+tys = coeffys[nstation==1] * 10** VsExpSamp * ps[nstation == 1]
+plt.plot(tTilt[nstation==1],tyd,'b')
+plt.plot(tTilt[nstation==1],tys,'r')
+plt.plot(tTilt[nstation==1],tys + 2.5*tyd,'g')
+plt.title('SDH-y')
+plt.legend(['HLM','SCR','sum'])

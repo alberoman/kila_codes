@@ -218,10 +218,11 @@ def DirectModelEmcee_inv_LF(tOrigTilt,tOrigGPS,
 
 
 def DirectModelEmcee_inv_LF_diagno(tOrigTilt,tOrigGPS,
-                         deltap0Samp,
+                         deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
                          VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,alphaSamp,gammaSamp,
+                         Xst,Yst,
                          ls,ld,mu,
-                         rhog,cs,S):
+                         rhog,cs,S,nstation):
 
     VsSamp = 10**VsExpSamp
     VdSamp  = 10**VdExpSamp
@@ -275,16 +276,23 @@ def DirectModelEmcee_inv_LF_diagno(tOrigTilt,tOrigGPS,
         i = i + 1
     ps = ps * pspdSamp
     pd = pd * pspdSamp
-    
+    coeffxs = cs * dsSamp * (Xst -  xsSamp) / (dsSamp**2 + (Xst -  xsSamp)**2 + (Yst -  ysSamp)**2 )**(5./2) 
+    coeffys = cs * dsSamp * (Yst -  ysSamp) / (dsSamp**2 + (Xst -  xsSamp)**2 + (Yst -  ysSamp)**2 )**(5./2) 
+    coeffxd = cs * ddSamp * (Xst -  xdSamp) / (ddSamp**2 + (Xst -  xdSamp)**2 + (Yst -  ydSamp)**2 )**(5./2) 
+    coeffyd = cs * ddSamp * (Yst -  ydSamp) / (ddSamp**2 + (Xst -  xdSamp)**2 + (Yst -  ydSamp)**2 )**(5./2) 
+    txMod = coeffxs * VsSamp * ps + coeffxd * VdSamp * pd
+    tyMod = coeffys * VsSamp * ps + coeffyd * VdSamp * pd
     #dtxMod = np.diff(txMod[j]) / np.diff(tTiltList[j]))
     #dtyMod.append(np.diff(tyMod[j]) / np.diff(tTiltList[j]))
     
     gpsMod = gps * xstar
     tOrigTilt = tOrigTilt / tstar
     tOrigGPS = tOrigGPS * tstar
-    gpsMod = gpsMod  
-    return ps,pd,gpsMod
-
+    for i in range((np.max(nstation) + 1)):
+        txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]*1e-6
+        tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]*1e-6
+    gpsMod = gpsMod  + offGPSSamp
+    return txMod,tyMod,gpsMod,ps,pd,coeffxs,coeffxd,coeffys,coeffyd
 
 
 def log_likelihood_UF(param,

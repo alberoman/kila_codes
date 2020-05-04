@@ -100,10 +100,10 @@ def log_likelihood(param,
                                               rhog,const,S,nstation)
     sigma2Tilt = tiltErr ** 2
     sigma2GPS = GPSErr ** 2
-    liketx = -0.5 * np.sum((txObs - txMod) ** 2 / sigma2Tilt,0)  -len(txObs)/ 2 * np.log(6.28 * sigma2Tilt**2)  
-    likety = -0.5 * np.sum((tyObs - tyMod) ** 2 / sigma2Tilt,0)  -len(tyObs)/ 2 * np.log(6.28 * sigma2Tilt**2)
+    liketx = -0.5 * np.sum((txObs - txMod) ** 2 / sigma2Tilt,0)  -len(txObs)/ 2 * np.log(6.28 * sigma2Tilt)  
+    likety = -0.5 * np.sum((tyObs - tyMod) ** 2 / sigma2Tilt,0)  -len(tyObs)/ 2 * np.log(6.28 * sigma2Tilt)
     liketilt =  + liketx + likety 
-    likeGPS = -0.5 * np.sum((GPSObs - GPSMod) ** 2 / sigma2GPS) -len(GPSObs)/ 2 * np.log(6.28 * sigma2GPS**2)
+    likeGPS = -0.5 * np.sum((GPSObs - GPSMod) ** 2 / sigma2GPS) -len(GPSObs)/ 2 * np.log(6.28 * sigma2GPS)
      
     return liketilt + likeGPS
 
@@ -134,9 +134,9 @@ def log_prior(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,locTr,locEr
         conditions.append(all(np.abs(offs)<bndtiltconst))
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
         if all(conditions):
-            logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
-            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
-            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[2]))-0.5*(dsSamp-locTr[2])**2/locEr[2]**2
+            logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0])**2)-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
+            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]**2))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
+            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[2])**2)-0.5*(dsSamp-locTr[2])**2/locEr[2]**2
             return logprob
         return -np.inf
     elif flaglocation == 'F': #flat uniform priors
