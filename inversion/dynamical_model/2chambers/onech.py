@@ -23,7 +23,7 @@ path_results = '../../../../results/onech/'
 
 pathrun = 'alpha'
 
-model_type = 'LF'
+model_type = 'UF'
 
 stations  = ['UWD']
 date = '07-03-2018'

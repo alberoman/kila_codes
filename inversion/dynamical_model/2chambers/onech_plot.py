@@ -14,12 +14,12 @@ from onech_lib import *
 import os
 import corner
 from shutil import copyfile
-discardval = 30000
+discardval = 5000
 thinval = 1
 
 path_results = '../../../../results/onech/'
-pathrun = 'alpha'
-model_type = 'LF'
+pathrun = 'sigma2'
+model_type = 'UF'
 
 stations  = ['UWD']
 date = '07-03-2018'
@@ -60,7 +60,7 @@ np.random.seed(1234)
 Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0= pickle.load(open(pathgg + 'data.pickle','rb'))
 a = pickle.load(open(pathgg + 'parameters.pickle','rb'))
 
-bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = a
+bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,locErrFact,a_parameter,thin,nwalkers,ls,mu,ndim,const,S,rhog = a
 filename = 'progress_temp.h5'
 #Getting sampler info
 #nwalkers,ndim = reader.shape
