@@ -18,7 +18,7 @@ discardval = 1
 thinval = 1
 
 path_results = '../../../../results/onech/'
-pathrun = 'dxshort'
+pathrun = 'locErrx10'
 model_type = 'UF'
 
 stations  = ['UWD']
@@ -106,7 +106,7 @@ for parameters in samples[np.random.randint(len(samples), size = 90)]:
         offxSamp = np.array([offx1])
         offySamp = np.array([offy1])
     elif Nst == 2:
-        offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSam,VsExpSamp,ksExpSamp,R5ExpSamp,R3Samp,condsSamp,alphaSamp = parameters
+        offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,VsExpSamp,ksExpSamp,R5ExpSamp,R3Samp,condsSamp,alphaSamp = parameters
         offxSamp = np.array([offx1],offx2)
         offySamp = np.array([offy1,offy2])
     elif Nst == 3:
@@ -182,3 +182,13 @@ plt.close('all')
 
 os.remove(pathgg + 'progress_temp.h5')
 
+backend = emcee.backends.HDFBackend(pathgg + 'progress.h5')
+move = emcee.moves.StretchMove(a=a_parameter)
+with Pool() as pool:
+    if model_type == 'UF':
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability_UF,
+                                        args=(x,y,
+                                              ls,ld,mu,
+                                              rhog,const,S,
+                                              tTilt,tGPS,tx,ty,GPS,
+                                              tiltErr,GPSErr,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTruth,locErr,nstation,flaglocation),moves = [move], backend = backend, pool = pool)

@@ -84,8 +84,9 @@ def stick_slip(tilt_filt,dates,cald_start,station,fmt,majloc,minloc):
     print('Mean inflation event of station ', station,' is ', np.mean(amp))
     return np.diff(time_min_peaks),time_min_peaks[:-1],peaks,min_peaks
 
-name = 'SDH' #Tilt station to invert
-stations = pickle.load(open('../../tilt/tilt_dictionary_01may.pickle','rb')) 
+name = 'UWD' #Tilt station to invert
+path_data = '../../../data/'
+stations = pickle.load(open(path_data + 'tilt_dictionary_01may.pickle','rb')) 
 path_GPS = '../../GPS/'
 b, a = signal.butter(2, 0.03)
 date_caldera_start = mdates.date2num(datetime.strptime('2018-05-26','%Y-%m-%d'))

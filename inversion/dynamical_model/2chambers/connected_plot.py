@@ -25,10 +25,10 @@ discardval = 1
 thinval = 1
 
 path_results = '../../../../results/conn/'
-pathrun = 'sigma'
-model_type = 'LF'
+pathrun = 'fromMAP'
+model_type = 'UF'
 
-stations  = ['SDH','IKI']
+stations  = ['UWD']
 date = '07-03-2018'
 flaglocation = 'N'      # This is the flag for locations priors, F for Uniform, N for Normal
 
@@ -169,7 +169,7 @@ for i in range(len(stations)):
     plt.figure()
     plt.plot(tTiltStation / (3600 * 24),txStation,'b')
     plt.plot(tTiltStation / (3600 * 24),txModbestStation,'r')
-    plt.fill_between(tTiltStation /(3600 * 24),txmedStation-txsprStation,txmedStation + txsprStation,color='grey',alpha=0.5)
+    #plt.fill_between(tTiltStation /(3600 * 24),txmedStation-txsprStation,txmedStation + txsprStation,color='grey',alpha=0.5)
     plt.xlabel('Time [Days]')
     plt.ylabel('Tilt-x ' + stations[i])
     plt.savefig(pathfig + 'tx_' + stations[i] + '.pdf')
@@ -177,7 +177,7 @@ for i in range(len(stations)):
     plt.figure()
     plt.plot(tTiltStation / (3600 * 24),tyStation,'b')
     plt.plot(tTiltStation / (3600 * 24),tyModbestStation,'r')
-    plt.fill_between(tTiltStation / (3600 * 24),tymedStation - tysprStation,tymedStation + tysprStation,color='grey',alpha=0.5)
+    #plt.fill_between(tTiltStation / (3600 * 24),tymedStation - tysprStation,tymedStation + tysprStation,color='grey',alpha=0.5)
     plt.xlabel('Time [Days]')
     plt.ylabel('Tilt-y ' + stations[i])
     plt.savefig(pathfig + 'ty_' + stations[i] + '.pdf')
