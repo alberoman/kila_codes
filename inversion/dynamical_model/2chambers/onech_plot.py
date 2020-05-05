@@ -14,11 +14,11 @@ from onech_lib import *
 import os
 import corner
 from shutil import copyfile
-discardval = 5000
+discardval = 1
 thinval = 1
 
 path_results = '../../../../results/onech/'
-pathrun = 'sigma2'
+pathrun = 'dxshort'
 model_type = 'UF'
 
 stations  = ['UWD']

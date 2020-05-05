@@ -7,7 +7,7 @@ Created on Thu Feb 13 10:35:16 2020
 """
 
 import numpy as np
-
+import emcee
 def TwoChambers_disc_timein(w0,par,pslip,tslipc,time,ps,t_x,x_data,N,alpha):
     ps0 = w0
     r1,r3 = par
@@ -70,6 +70,46 @@ def DirectModelEmcee_inv(tOrigTilt,tOrigGPS,
         tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]*1e-6
     gpsMod = gpsMod  + offGPSSamp
     return txMod,tyMod,gpsMod#,dtxMod, dtyMod
+
+def DirectModelEmcee_inv_diagno(tOrigTilt,tOrigGPS,
+                         offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,
+                         VsExpSamp,ksExpSamp,pspdSamp,R3Samp,condsSamp,alphaSamp,
+                         Xst,Yst,
+                         ls,mu,
+                         rhog,cs,S,nstation):
+                         
+    VsSamp = 10**VsExpSamp
+    ksSamp = 10**ksExpSamp
+    R5Samp =0
+    
+    R1Samp = rhog * VsSamp /(ksSamp*S)
+
+    tstar = VsSamp * 8 * mu * ls / (ksSamp * 3.14 * condsSamp**4)
+    xstar = pspdSamp * VsSamp / (ksSamp * S) 
+    tOrigGPS = tOrigGPS /tstar
+    tOrigTilt = tOrigTilt / tstar
+    params = [R1Samp,R3Samp]
+    ps = np.ones(len(tOrigTilt))
+    gps = np.ones(len(tOrigGPS))
+    ps0 = 4 * alphaSamp /(1 + R1Samp)
+    PSLIP = - 2 * R1Samp * (1 - R5Samp)/(1 + R1Samp)
+    TSLIPcum = 0
+
+    N_cycles =  ((1 + R1Samp)/ (4 * alphaSamp * R1Samp) * R3Samp)-1
+    i  = 1
+    w0 = [ps0]
+    thresh = 70
+    while i < N_cycles + 1 and i < thresh:
+        tslip,ps,gps = TwoChambers_disc_timein(w0,params,PSLIP,TSLIPcum,tOrigTilt,ps,tOrigGPS,gps,i,alphaSamp)
+        ps0 =     + 4 * alphaSamp / (1 + R1Samp) -4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp) * i
+        PSLIP =   - 4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp) * (i + 1)
+        TSLIPcum = TSLIPcum + tslip
+        w0 = np.array([ps0])
+        i = i + 1
+    ps = ps * pspdSamp
+    print(N_cycles)
+    return ps
+
 
 
 
@@ -221,4 +261,25 @@ def walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltco
 
     nwalkers, ndim = pos.shape
     
+    return pos,nwalkers,ndim
+
+def walkers_init_MAP(pathmap,Nst):
+    reader = emcee.backends.HDFBackend(pathmap + 'progress.h5', read_only = True )
+    nwalkers,ndim = reader.shape
+    samples = reader.get_chain(flat = True)
+    parmax = samples[np.argmax(reader.get_log_prob(flat = True))]
+    sigma = 0.15
+    pos = np.zeros((nwalkers,ndim)) 
+    for i in range(ndim):
+        pos[:,i] = np.random.normal(loc = parmax[i],scale = sigma * np.abs(parmax[i]),size = nwalkers)
+    VsExp = parmax[6]
+    ksExp = parmax[7]
+    Vs = 10**VsExp
+    ks = 10**ksExp
+    sigmaVs = 0.1 * Vs
+    sigmaks = 0.1 * ks
+    pos[:,6] = np.random.normal(loc = Vs,scale = sigmaVs, size = nwalkers ) 
+    pos[:,7] = np.random.normal(loc = ks,scale = sigmaks, size = nwalkers ) 
+    pos[:,6] =  np.log10(pos[:,6])
+    pos[:,7] =  np.log10(pos[:,7])
     return pos,nwalkers,ndim
