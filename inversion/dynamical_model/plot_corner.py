@@ -31,8 +31,8 @@ l = 4e+4
 
 results =pickle.load(open(pathgg_results + filename,'rb'))
 panda_trace = pm.backends.tracetab.trace_to_dataframe(results['trace'])
-panda_trace['V'] = np.log10(panda_trace['V']) 
-panda_trace['k'] = np.log10(panda_trace['k']) 
+panda_trace['Vs'] = np.log10(panda_trace['Vs']) 
+panda_trace['ks'] = np.log10(panda_trace['ks']) 
 panda_trace['ps'] = panda_trace['ps'] / 1e+6 
 panda_trace['pspd'] = panda_trace['pspd'] / 1e+6  
 panda_trace['plps'] = panda_trace['plps'] / 1e+6                        #Change this if chainging k or volume

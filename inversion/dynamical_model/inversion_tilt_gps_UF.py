@@ -50,22 +50,24 @@ x = -1774.
 y  = 2867.
 Nmin = 2
 Nmax = 70
-n = np.arange(1,len(tiltstnorth)+ 1 )
+n = np.arange(1,len(tiltsty)+ 1 )
 #Setup inversion
-Niter = 100000
+pi = 3.14
+Niter = 3000
 with pm.Model() as model:
     gpsconst = pm.Uniform('gpsconst',lower = -15,upper = 15)
     A_mod = pm.Uniform('A_mod',lower = 0,upper = 1000)
     B_mod = pm.Uniform('B_mod',lower = 0, upper = 1000)
     E_mod = pm.Uniform('E_mod',lower = 0,upper = 1000)
     
-    Vd_exp = pm.Uniform('Vd_exp',lower = 8,upper = 11)
+    Vd_exp = pm.Uniform('Vd_exp',lower = 8,upper = 12)
     kd_exp = pm.Uniform('kd_exp',lower = 8, upper = 11)
     Vs_exp = pm.Uniform('Vs_exp',lower = 8,upper = 11)
-    ks_exp = pm.Uniform('ks_exp',lower = 8, upper = 11)
+    ks_exp = pm.Uniform('ks_exp',lower = 7, upper = 10)
     Vd_mod = pm.Deterministic('Vd_mod',10**Vd_exp)
     kd_mod = pm.Deterministic('kd_mod',10**kd_exp)
     Vs_mod = pm.Deterministic('Vs_mod',10**Vs_exp)
+    #ratio = pm.Uniform('ratio',lower = 0.1,upper = 5e+3)
     ks_mod = pm.Deterministic('ks_mod',10**ks_exp)
     pspd_mod = pm.Uniform('pspd_mod',lower=1e+5,upper=1e+7)
     conds_mod = pm.Uniform('conds_mod',lower=1,upper=10)
@@ -73,17 +75,14 @@ with pm.Model() as model:
     dsh_mod = pm.Normal('dsh_mod',mu = dsh, sigma = dshErr)
     xsh_mod = pm.Normal('xsh_mod',mu = xsh, sigma = xshErr)
     ysh_mod = pm.Normal('ysh_mod',mu = ysh, sigma = yshErr)
-    coeffx = cs * dsh_mod * (x -  xsh_mod) / (dsh_mod**2 + (x -  xsh_mod)**2 + (y -  ysh_mod)**2 )**(5./2) * Vd_mod
-    coeffy = cs * dsh_mod * (y -  ysh_mod) / (dsh_mod**2 + (x -  xsh_mod)**2 + (y -  ysh_mod)**2 )**(5./2) * Vd_mod
-    R1 = pm.Deterministic('R1',rho * g * Vd_mod /(kd_mod * S)  )
+    coeffx = cs * dsh_mod * (x -  xsh_mod) / (dsh_mod**2 + (x -  xsh_mod)**2 + (y -  ysh_mod)**2 )**(5./2) * Vs_mod
+    coeffy = cs * dsh_mod * (y -  ysh_mod) / (dsh_mod**2 + (x -  xsh_mod)**2 + (y -  ysh_mod)**2 )**(5./2) * Vs_mod
+    R1 = pm.Deterministic('R1',rho * g * Vs_mod /(ks_mod * S)  )
     low_bound = 2 * Nmin * R1 / (1 + R1) 
     up_bound = 2 * Nmax * R1 / (1 + R1) 
-    R3_mod = pm.Uniform('R3_mod',lower=low_bound,upper=up_bound)
-    tau1 = 8 * mu *ls * Vs_mod/ (3.14 * conds_mod**4 * ks_mod)
     tau2 = 8 * mu *ld * Vs_mod/ (3.14 * condd_mod**4 * ks_mod)    #Model set-up
     x_mod =gpsconst+ 2 * R1 / (rho * g) * pspd_mod / (1 + R1) * n
 
-    dt_mod = -tau1 * pm.math.log((-R1*(2 * R1 / (rho * g) * pspd_mod / (1 + R1) * n) + R3_mod )/ (-R1*(2 * R1 / (rho * g) * pspd_mod / (1 + R1) * (n-1)) +  2 * pspd_mod/ (1 + R1) + R3_mod))
     
     pslip_mod = -rho * g * x_mod
     pstick_mod = pslip_mod + 2 * pspd_mod/ (1 + R1)
@@ -95,8 +94,10 @@ with pm.Model() as model:
 
     T1 = (conds_mod / condd_mod )**4 * ld /ls
     phi = kd_mod /ks_mod * Vs_mod / Vd_mod
-    
+    #phi = ratio  * Vs_mod / kd_mod
     stack_mod  = A_mod * tt.exp(tstack/tau2*(-T1/2 - phi/2 + tt.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2)) + B_mod * tt.exp(tstack/tau2*(-T1/2 - phi/2 - tt.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2))  - E_mod
+#    stack_mod = A_mod * tt.exp(t*(-condd**4*pi*r/(16*ld*mu) + tt.sqrt((condd**4*pi*r/(8*ld*mu) - condd**4*ks*pi/(8*Vs*ld*mu) - conds**4*ks*pi/(8*Vs*ls*mu))**2 + condd**8*ks*pi**2*r/(16*Vs*ld**2*mu**2))/2 - condd**4*ks*pi/(16*Vs*ld*mu) - conds**4*ks*pi/(16*Vs*ls*mu))) +
+#                B_mod * tt.exp
     #Posterio
     tslx_obs = pm.Normal('tslx_obs', mu=tslx_mod, sigma = tilt_std, observed=tiltslx)
     tsly_obs = pm.Normal('tsly_obs', mu=tsly_mod, sigma = tilt_std, observed=tiltsly)
@@ -105,18 +106,16 @@ with pm.Model() as model:
     
     
     
-    dt_obs = pm.Normal('dt_obs', mu = dt_mod, sigma = dt_std, observed = dtslip)
     x_obs = pm.Normal('x_obs', mu = x_mod, sigma = gps_std, observed=gps)
     stack_obs = pm.Normal('stack_obs', mu = stack_mod, sigma = tilt_std*1e+6, observed=stack)
-    trace = pm.sample(100000,init='advi',tune=1000)
+    trace = pm.sample(Niter,init='advi',tune=100,target_accept =0.85)
     #trace = pm.sample(1000)
 map_estimate = pm.find_MAP(model=model)
 sults = {}
 results['MAP'] = map_estimate
 results['trace'] = trace
-results['ref_coord'] = data['ref_coord']
 results['iterations'] = Niter
-pickle.dump(results,open('res' + str(Niter) + '_LF.pickle','wb'))
+pickle.dump(results,open('res' + str(Niter) + '_UF.pickle','wb'))
 #pm.traceplot(trace)
     
     

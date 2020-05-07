@@ -21,12 +21,12 @@ from connected_lib import *
 import os
 import corner
 from shutil import copyfile
-discardval = 1
+discardval = 50000
 thinval = 1
 
 path_results = '../../../../results/conn/'
 pathrun = 'fromMAP'
-model_type = 'UF'
+model_type = 'LF'
 
 stations  = ['UWD']
 date = '07-03-2018'

@@ -14,11 +14,11 @@ from onech_lib import *
 import os
 import corner
 from shutil import copyfile
-discardval = 1
+discardval = 10000
 thinval = 1
 
 path_results = '../../../../results/onech/'
-pathrun = 'locErrx10'
+pathrun = 'freebounds'
 model_type = 'UF'
 
 stations  = ['UWD']
