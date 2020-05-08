@@ -51,16 +51,16 @@ y  = 2867.
 Nmin = 2
 Nmax = 70
 n = np.arange(1,len(tiltstnorth)+ 1 )
-
-filename = 'res100000_UF.pickle'
+conds = 3.5
+filename = 'res1000_UF.pickle'
 results =pickle.load(open(filename,'rb'))
 
 R1 = rho * g * results['MAP']['Vd_mod'] /(results['MAP']['kd_mod'] * S)    
 xMAP = results['MAP']['gpsconst']+ 2 * R1 / (rho * g) * results['MAP']['pspd_mod'] / (1 + R1) * n
 pslipMAP =  -rho * g * x_MAP
 pstickMAP = pslipMAP + 2 * results['MAP']['pspd_mod']/ (1 + R1)
-T1 = (results['MAP']['conds_mod'] / results['MAP']['condd_mod'] )**4 * ld /ls
-phi = results['MAP']['kd_mod'] / results['MAP']['ks_mod'] * results['MAP']['Vs_mod'] / results['MAP']['Vd_mod']
+T1 = (3.5 / results['MAP']['condd_mod'] )**4 * ld /ls
+phi = 1 * results['MAP']['Vs_mod'] / results['MAP']['Vd_mod']
 coeffx = cs * results['MAP']['dsh_mod'] * (x -  results['MAP']['xsh_mod']) / (results['MAP']['dsh_mod']**2 + (x -  results['MAP']['xsh_mod'])**2 + (y -  results['MAP']['ysh_mod'])**2 )**(5./2) * results['MAP']['Vd_mod']
 coeffy = cs * results['MAP']['dsh_mod'] * (y -  results['MAP']['ysh_mod']) / (results['MAP']['dsh_mod']**2 + (x -  results['MAP']['xsh_mod'])**2 + (y -  results['MAP']['ysh_mod'])**2 )**(5./2) * results['MAP']['Vd_mod']
 tau2 = 8 * mu *ld * results['MAP']['Vs_mod']/ (3.14 * results['MAP']['condd_mod']**4 * results['MAP']['ks_mod'])

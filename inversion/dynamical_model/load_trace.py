@@ -1,16 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Dec  5 20:37:05 2019
-
-@author: aroman
-"""
-
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Nov  7 23:17:50 2019
+Created on Thu May  7 16:33:33 2020
 
 @author: aroman
 """
@@ -53,8 +44,7 @@ Nmax = 70
 n = np.arange(1,len(tiltsty)+ 1 )
 #Setup inversion
 pi = 3.14
-Niter = 100000
-conds_mod = 3.5
+Niter = 100
 with pm.Model() as model:
     gpsconst = pm.Uniform('gpsconst',lower = -15,upper = 15)
     A_mod = pm.Uniform('A_mod',lower = 0,upper = 1000)
@@ -66,7 +56,7 @@ with pm.Model() as model:
     Vs_exp = pm.Uniform('Vs_exp',lower = 8,upper = 11)
     ks_exp = pm.Uniform('ks_exp',lower = 7, upper = 10)
     Vd_mod = pm.Deterministic('Vd_mod',10**Vd_exp)
-    #kd_mod = ks_mod
+    #kd_mod = pm.Deterministic('kd_mod',10**kd_exp)
     Vs_mod = pm.Deterministic('Vs_mod',10**Vs_exp)
     #ratio = pm.Uniform('ratio',lower = 0.1,upper = 5e+3)
     ks_mod = pm.Deterministic('ks_mod',10**ks_exp)
@@ -94,7 +84,7 @@ with pm.Model() as model:
     tsty_mod = coeffy * pstick_mod    
 
     T1 = (conds_mod / condd_mod )**4 * ld /ls
-    phi = 1 * Vs_mod / Vd_mod
+    phi = kd_mod /ks_mod * Vs_mod / Vd_mod
     #phi = ratio  * Vs_mod / kd_mod
     stack_mod  = A_mod * tt.exp(tstack/tau2*(-T1/2 - phi/2 + tt.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2)) + B_mod * tt.exp(tstack/tau2*(-T1/2 - phi/2 - tt.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2))  - E_mod
 #    stack_mod = A_mod * tt.exp(t*(-condd**4*pi*r/(16*ld*mu) + tt.sqrt((condd**4*pi*r/(8*ld*mu) - condd**4*ks*pi/(8*Vs*ld*mu) - conds**4*ks*pi/(8*Vs*ls*mu))**2 + condd**8*ks*pi**2*r/(16*Vs*ld**2*mu**2))/2 - condd**4*ks*pi/(16*Vs*ld*mu) - conds**4*ks*pi/(16*Vs*ls*mu))) +
@@ -109,14 +99,4 @@ with pm.Model() as model:
     
     x_obs = pm.Normal('x_obs', mu = x_mod, sigma = gps_std, observed=gps)
     stack_obs = pm.Normal('stack_obs', mu = stack_mod, sigma = tilt_std*1e+6, observed=stack)
-    trace = pm.sample(Niter,init='advi',tune=100,target_accept =0.85)
-    trace = pm.sample(1000)
-map_estimate = pm.find_MAP(model=model)
-sults = {}
-results['MAP'] = map_estimate
-results['iterations'] = Niter
-pickle.dump(results,open('res' + str(Niter) + '_UF.pickle','wb'))
-pm.save_trace(trace, 'trace'+str(Niter) + '_UF')
-#pm.traceplot(trace)
-    
-    
+    trace2 = pm.load_trace('trace1000_UF')
