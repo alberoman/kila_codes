@@ -53,8 +53,9 @@ Nmax = 70
 n = np.arange(1,len(tiltsty)+ 1 )
 #Setup inversion
 pi = 3.14
-Niter = 100000
+Niter = 30
 conds_mod = 3.5
+path_results = '../../../../results/'
 with pm.Model() as model:
     gpsconst = pm.Uniform('gpsconst',lower = -15,upper = 15)
     A_mod = pm.Uniform('A_mod',lower = 0,upper = 1000)
@@ -79,8 +80,6 @@ with pm.Model() as model:
     coeffx = cs * dsh_mod * (x -  xsh_mod) / (dsh_mod**2 + (x -  xsh_mod)**2 + (y -  ysh_mod)**2 )**(5./2) * Vs_mod
     coeffy = cs * dsh_mod * (y -  ysh_mod) / (dsh_mod**2 + (x -  xsh_mod)**2 + (y -  ysh_mod)**2 )**(5./2) * Vs_mod
     R1 = pm.Deterministic('R1',rho * g * Vs_mod /(ks_mod * S)  )
-    low_bound = 4 * Nmin * R1 / (1 + R1) 
-    up_bound = 4 * Nmax * R1 / (1 + R1) 
     tau2 = 8 * mu *ld * Vs_mod/ (3.14 * condd_mod**4 * ks_mod)    #Model set-up
     x_mod =gpsconst+ 4 * R1 / (rho * g) * pspd_mod / (1 + R1) * n
 
@@ -110,13 +109,12 @@ with pm.Model() as model:
     x_obs = pm.Normal('x_obs', mu = x_mod, sigma = gps_std, observed=gps)
     stack_obs = pm.Normal('stack_obs', mu = stack_mod, sigma = tilt_std*1e+6, observed=stack)
     trace = pm.sample(Niter,init='advi',tune=100,target_accept =0.85)
-    trace = pm.sample(1000)
 map_estimate = pm.find_MAP(model=model)
-sults = {}
+results = {}
 results['MAP'] = map_estimate
 results['iterations'] = Niter
-pickle.dump(results,open('res' + str(Niter) + '_UF.pickle','wb'))
-pm.save_trace(trace, 'trace'+str(Niter) + '_UF')
+pickle.dump(results,open(path_results + 'res' + str(Niter) + '_UF.pickle','wb'))
+pm.save_trace(trace, path_results +'trace'+str(Niter) + '_UF',overwrite =  True)
 #pm.traceplot(trace)
     
     
