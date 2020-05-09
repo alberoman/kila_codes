@@ -53,9 +53,9 @@ Nmax = 70
 n = np.arange(1,len(tiltsty)+ 1 )
 #Setup inversion
 pi = 3.14
-Niter = 30
+Niter = 300000
 conds_mod = 3.5
-path_results = '../../../../results/'
+path_results = '../../../results/'
 with pm.Model() as model:
     gpsconst = pm.Uniform('gpsconst',lower = -15,upper = 15)
     A_mod = pm.Uniform('A_mod',lower = 0,upper = 1000)
