@@ -123,6 +123,6 @@ def isostatic_piston(x0,R1,R2,R3,R4,R5):
         Vc = Vc + dV
         V[i+1]= Vc
 
-    return press,x,v,N_cycle,t,np.array(t_slip_start),np.diff(t_slip_start),np.array(dx_slip),np.array(slip_duration)
+    return t,press,x,v,V
 
 

@@ -151,7 +151,7 @@ def correct_offset(north,east,flag):
             
 
 pathgg = '../../data/Tiltmeterdatafr/'
-day_beginning =  '05/01/2018'
+day_beginning =  '07/01/2018'
 day_end =  '08/15/2018'
 
 station_coord = lat_lon_allstations(pathgg)
@@ -205,7 +205,7 @@ for i in station_indexes.keys():
     station[i]['time'] = t_short
     station[i]['north'] = north_fixed
     station[i]['east'] = east_fixed
-#pickle.dump(station, open( "tilt_dictionary_01may.pickle", "wb" ))
+pickle.dump(station, open( "tilt_dictionary_01july.pickle", "wb" ))
 
     
         

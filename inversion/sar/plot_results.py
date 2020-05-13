@@ -199,47 +199,47 @@ panda_trace = pm.backends.tracetab.trace_to_dataframe(results['trace'])
 fig1 = plt.figure(1)
 corner.corner(panda_trace[['depthSource1','xSource1','ySource1','depthSource2','xSource2','ySource2']],truths = [results['MAP']['depthSource1'],results['MAP']['xSource1'],results['MAP']['ySource1'],
                                                                                                                  results['MAP']['depthSource2'],results['MAP']['xSource2'],results['MAP']['ySource2']])
-plt.savefig(path_Figs + 'hist_SAR.pdf')
-plt.close('all')
-#First track
-lon_data,lat_data, v, inc, look = read_paul_data(path_data_sar,fname_asc)
-plot_scatter_ondem(lon_data,lat_data,v,path_Figs,'data_' + fname_asc)
-d = prepare_data(ref_coord,path_data_sar,fname_asc)
-#vModel = direct_mogi_model(results['MAP']['xSource'],results['MAP']['ySource'],results['MAP']['depthSource'],results['MAP']['strSource'],d)
-vModel = direct_2mogi_model(results['MAP']['xSource1'],results['MAP']['ySource1'],results['MAP']['depthSource1'],results['MAP']['strSource1'],
-                           results['MAP']['xSource2'],results['MAP']['ySource2'],results['MAP']['depthSource2'],results['MAP']['strSource2'],d)
-plot_scatter_ondem(lon_data,lat_data,vModel,path_Figs,'model_' + fname_asc,lonlatSource1[0],lonlatSource1[1],lonlatSource2[0],lonlatSource2[1])
-#adding a plot for comparing the locations from dynamical and kinematic 
-plot_scatter_ondem(lon_data,lat_data,vModel,path_Figs,'model_' + fname_asc +'dynamicalsources',lonlatSource1dyn[0],lonlatSource1dyn[1],lonlatSource2dyn[0],lonlatSource2dyn[1])
-
-residual = v - vModel
-plot_scatter_ondem(lon_data,lat_data,residual,path_Figs,'residual_' + fname_asc,lonlatSource1[0],lonlatSource1dyn[1],lonlatSource2dyn[0],lonlatSource2[1])
-#Second track
-lon_data,lat_data, v, inc, look = read_paul_data(path_data_sar,fname_des)
-plot_scatter_ondem(lon_data,lat_data,v,path_Figs,'data_' + fname_des)
-d = prepare_data(ref_coord,path_data_sar,fname_des)
-#vModel = direct_mogi_model(results['MAP']['xSource'],results['MAP']['ySource'],results['MAP']['depthSource'],results['MAP']['strSource'],d)
-vModel = direct_2mogi_model(results['MAP']['xSource1'],results['MAP']['ySource1'],results['MAP']['depthSource1'],results['MAP']['strSource1'],
-                           results['MAP']['xSource2'],results['MAP']['ySource2'],results['MAP']['depthSource2'],results['MAP']['strSource2'],d)
-plot_scatter_ondem(lon_data,lat_data,vModel,path_Figs,'model_' + fname_des,lonlatSource1[0],lonlatSource1[1],lonlatSource2[0],lonlatSource2[1])
-residual = v - vModel
-plot_scatter_ondem(lon_data,lat_data,residual,path_Figs,'residual_' + fname_des,lonlatSource1[0],lonlatSource1[1],lonlatSource2[0],lonlatSource2[1])
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
- 
-
+#plt.savefig(path_Figs + 'hist_SAR.pdf')
+#plt.close('all')
+##First track
+#lon_data,lat_data, v, inc, look = read_paul_data(path_data_sar,fname_asc)
+#plot_scatter_ondem(lon_data,lat_data,v,path_Figs,'data_' + fname_asc)
+#d = prepare_data(ref_coord,path_data_sar,fname_asc)
+##vModel = direct_mogi_model(results['MAP']['xSource'],results['MAP']['ySource'],results['MAP']['depthSource'],results['MAP']['strSource'],d)
+#vModel = direct_2mogi_model(results['MAP']['xSource1'],results['MAP']['ySource1'],results['MAP']['depthSource1'],results['MAP']['strSource1'],
+#                           results['MAP']['xSource2'],results['MAP']['ySource2'],results['MAP']['depthSource2'],results['MAP']['strSource2'],d)
+#plot_scatter_ondem(lon_data,lat_data,vModel,path_Figs,'model_' + fname_asc,lonlatSource1[0],lonlatSource1[1],lonlatSource2[0],lonlatSource2[1])
+##adding a plot for comparing the locations from dynamical and kinematic 
+#plot_scatter_ondem(lon_data,lat_data,vModel,path_Figs,'model_' + fname_asc +'dynamicalsources',lonlatSource1dyn[0],lonlatSource1dyn[1],lonlatSource2dyn[0],lonlatSource2dyn[1])
+#
+#residual = v - vModel
+#plot_scatter_ondem(lon_data,lat_data,residual,path_Figs,'residual_' + fname_asc,lonlatSource1[0],lonlatSource1dyn[1],lonlatSource2dyn[0],lonlatSource2[1])
+##Second track
+#lon_data,lat_data, v, inc, look = read_paul_data(path_data_sar,fname_des)
+#plot_scatter_ondem(lon_data,lat_data,v,path_Figs,'data_' + fname_des)
+#d = prepare_data(ref_coord,path_data_sar,fname_des)
+##vModel = direct_mogi_model(results['MAP']['xSource'],results['MAP']['ySource'],results['MAP']['depthSource'],results['MAP']['strSource'],d)
+#vModel = direct_2mogi_model(results['MAP']['xSource1'],results['MAP']['ySource1'],results['MAP']['depthSource1'],results['MAP']['strSource1'],
+#                           results['MAP']['xSource2'],results['MAP']['ySource2'],results['MAP']['depthSource2'],results['MAP']['strSource2'],d)
+#plot_scatter_ondem(lon_data,lat_data,vModel,path_Figs,'model_' + fname_des,lonlatSource1[0],lonlatSource1[1],lonlatSource2[0],lonlatSource2[1])
+#residual = v - vModel
+#plot_scatter_ondem(lon_data,lat_data,residual,path_Figs,'residual_' + fname_des,lonlatSource1[0],lonlatSource1[1],lonlatSource2[0],lonlatSource2[1])
+#
+#
+#
+#
+#
+#
+#
+#
+#    
+#
+#
+#
+#
+#
+#
+#
+#
+# 
+#

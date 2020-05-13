@@ -118,7 +118,7 @@ east = east - east[0]
 north = north - north[0]
 
 timebase = np.linspace(0,0.2,200)
-timebase = np.concatenate((timebase,np.linspace(0.1,1,100)))
+timebase = np.concatenate((timebase,np.linspace(0.21,1,100)))
 north_filt = signal.filtfilt(b, a,north)
 time_peaks,peaks,ind = stick_slip(north_filt,time)
 stack  =[]
@@ -200,13 +200,15 @@ panda_trace = pm.backends.tracetab.trace_to_dataframe(results['trace'])
 dsh = panda_trace.mean()['depthSource1']
 xsh = panda_trace.mean()['xSource1']
 ysh = panda_trace.mean()['ySource1']
-
+strsrc = panda_trace.mean()['strSource2']
 
 
 dshErr = panda_trace.std()['depthSource1']
 xshErr = panda_trace.std()['xSource1']
 yshErr = panda_trace.std()['ySource1']
+strsrcErr = panda_trace.std()['strSource2']
 
-pickle.dump([dtslip,tiltstnorth,tiltsteast,tiltslnorth,tiltsleast,gps,stack,tstack,xsh,ysh,dsh,xshErr,yshErr,dshErr],open('data2ch.pickle','wb'))
+
+pickle.dump([dtslip,tiltstnorth,tiltsteast,tiltslnorth,tiltsleast,gps,stack,tstack,xsh,ysh,dsh,xshErr,yshErr,dshErr,strsrc,strsrcErr],open('data2ch.pickle','wb'))
     
 
