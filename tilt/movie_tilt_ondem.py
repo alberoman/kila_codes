@@ -249,12 +249,14 @@ im1 = map.imshow(rgb,origin = 'upper',rasterized =True)
 #cbar.ax.set_yticklabels(['0', '-7.5','-15']) 
 #cbar.set_label('LOS displacements [cm]',fontsize = 18)
 #cbar.solids.set_rasterized(True)
-npix =  750 # extension (in pixel) of the arrows
+npix =  500 # extension (in pixel) of the arrows
 magnitude1 = (stations['UWD']['north'])
 magnitude2 = (stations['SDH']['north'])
+xsrc1,ysrc1 = map(lonlatSource1[0][0],lonlatSource1[1][0]) 
+xsrc2,ysrc2 = map(lonlatSource2[0][0],lonlatSource2[1][0]) 
 
 filename_counter = 0
-step = 300
+step = 30
 for counter in np.arange(0,len(time_tilt),step):
     h1 = []
     h2 = []
@@ -270,10 +272,17 @@ for counter in np.arange(0,len(time_tilt),step):
         handle1 = draw_vector([x,y],[x + east * npix,y + north*npix ],'orange', ax_map)
         handle2 = draw_vector([x,y],[x -east*npix,y - north*npix ],'orange', ax_map)
         if not (name == 'UWE'):             #UWD and UWE are on the same site, plotting only UWE
-            map.plot(x,y,'ko',markersize = 4)
-            ax_map.text(x-2000,y-1000,name,color = 'black',fontsize = 7,fontweight = 'heavy')
+            map.plot(x,y,'ko',markersize = 3)
+            if (name == 'IKI'):
+               ax_map.text(x+600,y+600,name,color = 'black',fontsize = 5,fontweight = 'heavy')
+            else:
+                ax_map.text(x-2300,y-500,name,color = 'black',fontsize = 5,fontweight = 'heavy')
         h1.append(handle1)
         h2.append(handle2)
+    map.plot(xsrc1,ysrc1,'ro',markersize = 4)
+    map.plot(xsrc2,ysrc2,'ro',markersize = 4)
+    ax_map.text(xsrc1+250,ysrc1+250,'HLM',color = 'red',fontsize = 7,fontweight = 'heavy')
+    ax_map.text(xsrc2+250,ysrc2+250,'SRC',color = 'red',fontsize = 7,fontweight = 'heavy')
     print(counter)
     timeseries1 = ax_UWD.plot(time_tilt[::step],magnitude1[::step],'blue')
     timeseries2 = ax_SDH.plot(time_tilt[::step],magnitude2[::step],'blue')
@@ -287,6 +296,8 @@ for counter in np.arange(0,len(time_tilt),step):
     ax_UWD.xaxis.set_major_formatter(date_fmt)
     ax_UWD.xaxis.set_major_locator(months)
     ax_UWD.xaxis.set_minor_locator(days)
+    ax_UWD.tick_params(labelbottom=False)    
+
     ax_SDH.set_xlim(date_initial_plot,date_final_plot)
     ax_SDH.xaxis.set_major_formatter(date_fmt)
     ax_SDH.xaxis.set_major_locator(months)

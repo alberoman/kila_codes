@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Dec  1 18:53:57 2019
+Created on Thu May  7 23:49:54 2020
 
 @author: aroman
 """
-import numpy as np
+
+mport numpy as np
 import matplotlib.dates as mdates
 from datetime import datetime
 from scipy import signal
@@ -118,10 +119,8 @@ east = east - east[0]
 north = north - north[0]
 
 timebase = np.linspace(0,0.2,200)
-timebase = np.concatenate((timebase,np.linspace(0.21,1,100)))
+timebase = np.concatenate((timebase,np.linspace(0.1,1,100)))
 north_filt = signal.filtfilt(b, a,north)
-east_filt = signal.filtfilt(b, a,east)
-
 time_peaks,peaks,ind = stick_slip(north_filt,time)
 stack  =[]
 dtiltslipnorth = []
@@ -143,91 +142,8 @@ for i in range(len(ind)-1):
 
         stack.append(tiltint)
         counter = counter + 1
-dtiltstnorth = np.array(dtiltsticknorth)
-tiltstnorth = -dtiltstnorth*1e-6
-dtiltsteast = np.array(dtiltstickeast)
-tiltsteast = -dtiltsteast * 1e-6
-dtiltslnorth = np.array(dtiltslipnorth)
-tiltslnorth = -dtiltslnorth*1e-6
-dtiltsleast = np.array(dtiltslipeast)
-tiltsleast = -dtiltsleast*1e-6
-tiltstnorth = tiltstnorth - tiltslnorth[0]
-tiltsteast = tiltsteast - tiltsleast[0]
-tiltslnorth = tiltslnorth - tiltslnorth[0]
-tiltsleast = tiltsleast - tiltsleast[0]
-
-dtslip = np.diff(time_peaks) * 2600 * 24
 stack = np.array(stack)
 stack = np.mean(stack,axis = 0)
 stackspr = np.std(stack,axis = 0)
 timebase = timebase * 3600 * 24
 popt, pcov = curve_fit(double_exp, timebase, stack)
-plt.figure()
-plt.fill_between(timebase,stack-stackspr,stack+stackspr)
-plt.plot(timebase,stack,'co')
-plt.plot(timebase,double_exp(timebase,*popt),'y')
-plt.figure()
-#plt.plot(time,north)
-plt.plot(time_peaks[:-1],tiltslnorth,'ro')
-plt.plot(time_peaks[:-1],tiltstnorth,'bo')
-plt.figure()
-#plt.plot(time,east)
-plt.plot(time_peaks[:-1],tiltsleast,'ro')
-plt.plot(time_peaks[:-1],tiltsteast,'bo')
-gps_list = ['CALS.csv']
-for gps in gps_list:
-    data = read_csv(path_GPS + gps)
-    time_gps,date,disp = format_gps(data)
-    date_new = []
-    for line in date:
-        date_temp = line[:10]
-        date_new.append(mdates.date2num(datetime.strptime(date_temp,'%Y-%m-%d')))
-    date_gps = np.array(date_new)
-date_gps = date_gps - t0
-gpsinterp = np.interp(time_peaks,date_gps,disp)
-gps = -gpsinterp
-gps = gps -gps[0]
-gps= gps[:-1]
-plt.figure()
-plt.plot(time_peaks[:-1],gps)
-tstack = timebase
-'''
-Source locations from sar
-'''
-filename = 'Mogi_Metropolis_100000_2mogi.pickle'
-results =pickle.load(open(path_data + filename,'rb'))
-panda_trace = pm.backends.tracetab.trace_to_dataframe(results['trace'])
-
-
-dsh = panda_trace.mean()['depthSource1']
-xsh = panda_trace.mean()['xSource1']
-ysh = panda_trace.mean()['ySource1']
-strsrc = panda_trace.mean()['strSource2']
-
-
-dshErr = panda_trace.std()['depthSource1']
-xshErr = panda_trace.std()['xSource1']
-yshErr = panda_trace.std()['ySource1']
-strsrcErr = panda_trace.std()['strSource2']
-time_slip = time[ind-50]
-fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (3,3))
-ax[0].plot(time_peaks[:-1],-dtiltsteast,'bo',markersize = 3)
-ax[0].plot(time,-east_filt)
-ax[0].plot(time_slip[:-1],-dtiltsleast,'bo',markersize = 3)
-ax[0].set_xlim([1,30])
-ax[0].set_ylabel('UWD EW [$\mu$rad]',fontsize= 12)
-
-ax[1].plot(time_peaks[:-1],-dtiltstnorth,'bo',markersize = 3)
-ax[1].plot(time,-north_filt)
-ax[1].plot(time_slip[:-1],-dtiltslnorth,'bo',markersize = 3)
-ax[1].set_ylabel('UWD NS [$\mu$rad]',fontsize= 12)
-ax[1].set_xlim([1,30])
-ax[1].set_xlabel('Days')
-plt.savefig('datasetstickslip.pdf')
-
-
-
-
-#pickle.dump([dtslip,tiltstnorth,tiltsteast,tiltslnorth,tiltsleast,gps,stack,tstack,xsh,ysh,dsh,xshErr,yshErr,dshErr,strsrc,strsrcErr],open('data2ch.pickle','wb'))
-    
-

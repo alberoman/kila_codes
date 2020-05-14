@@ -27,6 +27,8 @@ import matplotlib.gridspec as gridspec
 
 path_results = '../../../results/'
 
+g
+
 g = 9.8
 rho = 2700
 #chamber and elasticity
@@ -44,7 +46,11 @@ mu = 1e+2
 ls = 4e+4
 ld = 2.5e+3
 data = pickle.load(open('data2ch.pickle','rb'))
-dtslip,tiltsty,tiltstx,tiltsly,tiltslx,gps,stack,tstack,xsh,ysh,dsh,xshErr,yshErr,dshErr,strsrc,strsrcErr = data
+dtslip,tiltsty,tiltstx,tiltsly,tiltslx,gps,stackx,stacky,tstack,xsh,ysh,dsh,xshErr,yshErr,dshErr,strsrc,strsrcErr = data
+stacky = stacky *1e+6
+stackx = stackx *1e+6
+
+strsrc = np.abs(strsrc)
 strsrc = strsrc * lame / lamesar
 strsrcErr = strsrcErr * lame / lamesar
 tilt_std = 1e-5
@@ -59,37 +65,40 @@ n = np.arange(1,len(tiltsty)+ 1 )
 #Setup inversion
 pi = 3.14
 Niter = 300000
-#conds_mod = 3.5
 path_results = '../../../results/'
 with pm.Model() as model:
     gpsconst = pm.Uniform('gpsconst',lower = -15,upper = 15)
-    A_mod = pm.Uniform('A_mod',lower = 0,upper = 1000)
-    B_mod = pm.Uniform('B_mod',lower = 0, upper = 1000)
-    E_mod = pm.Uniform('E_mod',lower = 0,upper = 1000)
-    Vs_exp = pm.Uniform('Vs_exp',lower = 8,upper = 11)
-    Vs_mod = pm.Deterministic('Vs_mod',10**Vs_exp)
-    ks_exp = pm.Uniform('ks_exp',lower = 7, upper = 10)
-    ks_mod = pm.Deterministic('ks_mod',10**ks_exp)
-    R1 = pm.Deterministic('R1',rho * g * Vs_mod /(ks_mod * S)  )
-    ratio = pm.Uniform('ratio',lower = 30 * 2 * R1 / (1 + R1), upper = 120 * 2 * R1 / (1 + R1))
+    A_mod = pm.Uniform('A_mod',lower = 0, upper = 1e+2)
+    B_mod = pm.Uniform('B_mod',lower = 0, upper = 1e+2)
+    C_mod = pm.Uniform('C_mod',lower = 0, upper = 1e+2)
+    D_mod = pm.Uniform('D_mod',lower = 0, upper = 1e+2)
+    E_mod = pm.Uniform('E_mod',lower = 0, upper = 1e+2)
+    F_mod = pm.Uniform('F_mod',lower = 0, upper = 1e+2)
+
+    Vd_exp = pm.Uniform('Vd_exp',lower = 8,upper = 11)
+    Vd_mod = pm.Deterministic('Vd_mod',10**Vd_exp)
+
+    kd_exp = pm.Uniform('kd_exp',lower = 7, upper = 10)
+    kd_mod = pm.Deterministic('kd_mod',10**kd_exp)
+    R1 = pm.Deterministic('R1',rho * g * Vd_mod /(kd_mod * S)  )
+    ratio = pm.Uniform('ratio',lower = 30 * 4 * R1 / (1 + R1), upper = 100 * 4 * R1 / (1 + R1))
     pspd_mod = pm.Uniform('pspd_mod',lower=1e+5,upper=1e+7)
     ptps_mod = pm.Deterministic('ptps_mod',ratio * pspd_mod)
+    conds_mod = pm.Uniform('conds_mod',lower = 1, upper = 10)
 
     deltap_mod = pm.Uniform('deltap',lower = 1e+5,upper = ptps_mod )
     strsrc_mod = pm.Normal('strsrc_Mod',mu = strsrc, sigma = strsrcErr)
-    Vd_mod = pm.Deterministic('Vd_mod',strsrc_mod / deltap_mod)
-
-    #kd_exp = pm.Uniform('kd_exp',lower = 8, upper = 11)
+    Vs_mod = pm.Deterministic('Vs_mod',strsrc_mod / deltap_mod)
 
     
-    conds_mod = pm.Uniform('conds_mod',lower=1,upper=10)
+    #conds_mod = pm.Uniform('conds_mod',lower=1,upper=10)
     condd_mod = pm.Uniform('condd_mod',lower=1,upper=30)
     dsh_mod = pm.Normal('dsh_mod',mu = dsh, sigma = dshErr)
     xsh_mod = pm.Normal('xsh_mod',mu = xsh, sigma = xshErr)
     ysh_mod = pm.Normal('ysh_mod',mu = ysh, sigma = yshErr)
-    coeffx = cs * dsh_mod * (x -  xsh_mod) / (dsh_mod**2 + (x -  xsh_mod)**2 + (y -  ysh_mod)**2 )**(5./2) * Vs_mod
-    coeffy = cs * dsh_mod * (y -  ysh_mod) / (dsh_mod**2 + (x -  xsh_mod)**2 + (y -  ysh_mod)**2 )**(5./2) * Vs_mod
-    tau2 = 8 * mu *ld * Vs_mod/ (3.14 * condd_mod**4 * ks_mod)    #Model set-up
+    coeffx = cs * dsh_mod * (x -  xsh_mod) / (dsh_mod**2 + (x -  xsh_mod)**2 + (y -  ysh_mod)**2 )**(5./2) * Vd_mod
+    coeffy = cs * dsh_mod * (y -  ysh_mod) / (dsh_mod**2 + (x -  xsh_mod)**2 + (y -  ysh_mod)**2 )**(5./2) * Vd_mod
+    tau2 = 8 * mu *ld * Vs_mod/ (3.14 * condd_mod**4 * kd_mod)    #Model set-up
     x_mod =gpsconst+ 4 * R1 / (rho * g) * pspd_mod / (1 + R1) * n
     
     pslip_mod = -rho * g * x_mod
@@ -102,37 +111,37 @@ with pm.Model() as model:
 
     T1 = (conds_mod / condd_mod )**4 * ld /ls
     phi = 1 * Vs_mod / Vd_mod
-    #phi = ratio  * Vs_mod / kd_mod
-    stack_mod  = A_mod * tt.exp(tstack/tau2*(-T1/2 - phi/2 + tt.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2)) + B_mod * tt.exp(tstack/tau2*(-T1/2 - phi/2 - tt.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2))  - E_mod
-    #Posterio
+    stacky_mod  =   coeffy * 1e+6* pspd_mod *(A_mod * tt.exp(tstack/tau2*(-T1/2 - phi/2 + tt.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2)) + B_mod * tt.exp(tstack/tau2*(-T1/2 - phi/2 - tt.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2))  - ratio)
+    #stackx_mod  =   coeffx * 1e+6* pspd_mod *(C_mod * tt.exp(tstack/tau2*(-T1/2 - phi/2 + tt.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2)) + D_mod * tt.exp(tstack/tau2*(-T1/2 - phi/2 - tt.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2))  - ratio)
+
     tslx_obs = pm.Normal('tslx_obs', mu=tslx_mod, sigma = tilt_std, observed=tiltslx)
     tsly_obs = pm.Normal('tsly_obs', mu=tsly_mod, sigma = tilt_std, observed=tiltsly)
     tstx_obs = pm.Normal('tstx_obs', mu=tstx_mod, sigma = tilt_std, observed=tiltstx)
     tsty_obs = pm.Normal('tsty_obs', mu=tsty_mod, sigma = tilt_std, observed=tiltsty)
     
-    
-    
     x_obs = pm.Normal('x_obs', mu = x_mod, sigma = gps_std, observed=gps)
-    stack_obs = pm.Normal('stack_obs', mu = stack_mod, sigma = tilt_std*1e+6, observed=stack)
-    trace2 = pm.load_trace(path_results + 'trace300000_strsrc_UF')
+    #stackx_obs = pm.Normal('stackx_obs', mu = stackx_mod, sigma = tilt_std*1e+6, observed=stackx)
+    stacky_obs = pm.Normal('stacky_obs', mu = stacky_mod, sigma = tilt_std*1e+6, observed=stacky)
+    trace2 = pm.load_trace(path_results + 'trace300000_strsrc_LF')
 panda_trace = pm.backends.tracetab.trace_to_dataframe(trace2)
+
 panda_trace['Vs_mod'] = np.log10(panda_trace['Vs_mod']) 
-panda_trace['ks_mod'] = np.log10(panda_trace['ks_mod']) 
+panda_trace['kd_mod'] = np.log10(panda_trace['kd_mod']) 
 panda_trace['Vd_mod'] = np.log10(panda_trace['Vd_mod']) 
 panda_trace['pspd_mod'] = panda_trace['pspd_mod'] / 1e+6  
-filename = 'res300000_strsrc_UF.pickle'
+filename = 'res300000_strsrc_LF.pickle'
 results =pickle.load(open(path_results + filename,'rb'))
 
-R1 = rho * g * results['MAP']['Vs_mod'] /(results['MAP']['ks_mod'] * S)    
+R1 = rho * g * results['MAP']['Vd_mod'] /(results['MAP']['kd_mod'] * S)    
 xMAP = results['MAP']['gpsconst']+ 4 * R1 / (rho * g) * results['MAP']['pspd_mod'] / (1 + R1) * n
 pslipMAP =  -rho * g * xMAP
 pstickMAP = pslipMAP + 4 * results['MAP']['pspd_mod']/ (1 + R1)
 T1 = (results['MAP']['conds_mod']/ results['MAP']['condd_mod'] )**4 * ld /ls
 phi = 1 * results['MAP']['Vs_mod'] / results['MAP']['Vd_mod']
-coeffx = cs * results['MAP']['dsh_mod'] * (x -  results['MAP']['xsh_mod']) / (results['MAP']['dsh_mod']**2 + (x -  results['MAP']['xsh_mod'])**2 + (y -  results['MAP']['ysh_mod'])**2 )**(5./2) * results['MAP']['Vs_mod']
-coeffy = cs * results['MAP']['dsh_mod'] * (y -  results['MAP']['ysh_mod']) / (results['MAP']['dsh_mod']**2 + (x -  results['MAP']['xsh_mod'])**2 + (y -  results['MAP']['ysh_mod'])**2 )**(5./2) * results['MAP']['Vs_mod']
-tau2 = 8 * mu *ld * results['MAP']['Vs_mod']/ (3.14 * results['MAP']['condd_mod']**4 * results['MAP']['ks_mod'])
-stackMAP  = results['MAP']['A_mod'] * np.exp(tstack/tau2*(-T1/2 - phi/2 + np.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2)) + results['MAP']['B_mod'] * np.exp(tstack/tau2*(-T1/2 - phi/2 - np.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2))  - results['MAP']['E_mod']
+coeffx = cs * results['MAP']['dsh_mod'] * (x -  results['MAP']['xsh_mod']) / (results['MAP']['dsh_mod']**2 + (x -  results['MAP']['xsh_mod'])**2 + (y -  results['MAP']['ysh_mod'])**2 )**(5./2) * results['MAP']['Vd_mod']
+coeffy = cs * results['MAP']['dsh_mod'] * (y -  results['MAP']['ysh_mod']) / (results['MAP']['dsh_mod']**2 + (x -  results['MAP']['xsh_mod'])**2 + (y -  results['MAP']['ysh_mod'])**2 )**(5./2) * results['MAP']['Vd_mod']
+tau2 = 8 * mu *ld * results['MAP']['Vs_mod']/ (3.14 * results['MAP']['condd_mod']**4 * results['MAP']['kd_mod'])
+stackyMAP  = coeffy * 1e+6* results['MAP']['pspd_mod'] * (results['MAP']['A_mod'] * np.exp(tstack/tau2*(-T1/2 - phi/2 + np.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2)) + results['MAP']['B_mod'] * np.exp(tstack/tau2*(-T1/2 - phi/2 - np.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2))  - results['MAP']['ratio'])
 tslxMAP =coeffx * pslipMAP
 tstxMAP =coeffx * pstickMAP
 tslyMAP =coeffy * pslipMAP
@@ -191,23 +200,24 @@ ax2.set_xticks(ticks)
 plt.tight_layout()
 fig.align_ylabels()
 
-plt.savefig('MAPcollapses_strsrc_UF.pdf')
+plt.savefig('MAPcollapses_strsrc_LF.pdf')
 
-stackmed = np.median(ppc['stack_obs'],axis = 0)
-stackstd = np.std(ppc['stack_obs'],axis = 0)
+stackmed = np.median(ppc['stacky_obs'],axis = 0)
+stackstd = np.std(ppc['stacky_obs'],axis = 0)
 tstack = tstack/(3600)
 
 plt.figure()
-plt.plot(tstack,stack+180,'b')
-plt.plot(tstack,stackMAP+180,'m')
-plt.fill_between(tstack,stackmed-stackstd+180,stackmed+stackstd+180,alpha = 0.5)
+plt.plot(tstack,-stacky,'b')
+plt.plot(tstack,-stackyMAP,'m')
+plt.fill_between(tstack,-stackmed-stackstd,-stackmed+stackstd,alpha = 0.5)
 ax = plt.gca()
 ax.set_xlabel('Time [Hours]',fontsize= 12)
 ax.set_ylabel('UWD NS [$\mu rad$]',fontsize = 12)
-ax.set_xlim([0,24])
+ax.set_xlim([0,14])
 plt.tight_layout()
-plt.savefig('MAPstack_strsrc_UF.pdf')
+plt.savefig('MAPstack_strsrc_LF.pdf')
 
 plt.figure()
-corner.corner( panda_trace[['xsh_mod','ysh_mod','dsh_mod','pspd_mod','condd_mod','conds_mod','ks_mod','Vs_mod','Vd_mod','ptps_mod']],color = 'black',
-              truths =[results['MAP']['xsh_mod'],results['MAP']['ysh_mod'],results['MAP']['dsh_mod'],results['MAP']['pspd_mod']/1e+6,results['MAP']['condd_mod'],results['MAP']['conds_mod'],np.log10(results['MAP']['ks_mod']),np.log10(results['MAP']['Vs_mod']),np.log10(results['MAP']['Vd_mod']),results['MAP']['ptps_mod']])
+corner.corner( panda_trace[['xsh_mod','ysh_mod','dsh_mod','pspd_mod','condd_mod','conds_mod','kd_mod','Vs_mod','Vd_mod','ptps_mod']],color = 'black',
+              truths =[results['MAP']['xsh_mod'],results['MAP']['ysh_mod'],results['MAP']['dsh_mod'],results['MAP']['pspd_mod']/1e+6,results['MAP']['condd_mod'],results['MAP']['conds_mod'],np.log10(results['MAP']['kd_mod']),np.log10(results['MAP']['Vs_mod']),np.log10(results['MAP']['Vd_mod']),results['MAP']['ptps_mod']])
+plt.savefig('corner_strsrc_LF.pdf')

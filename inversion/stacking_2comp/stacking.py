@@ -17,14 +17,11 @@ from PCA_projection_tilt import *
 from scipy.optimize import curve_fit
 import pymc3 as pm
 
-def double_exp(t,A,B,E,T1,phi,condd):
-    Vs = 10**9.5
-    ks = 10**8
-    ld = 2500
-    mu = 100
-    tstar = 8 * Vs * mu * ld / (3.14 * ks *100)
-    
-    y  = A * np.exp(t/tstar*(-T1/2 - phi/2 + np.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2)) + B * np.exp(t/tstar*(-T1/2 - phi/2 - np.sqrt(4*phi + (-T1 + phi - 1)**2)/2 - 1/2))  - E
+def double_exp_positive(t,A,B,C,x1,xi2):
+    y  = A * np.exp(-x1*t) + B * np.exp(-xi2*t) -C
+    return y
+def double_exp_negative(t,A,B,C,x1,xi2):
+    y  = -(A * np.exp(-x1*t) + B * np.exp(-xi2*t) - C)
     return y
 
 def format_gps(A):
@@ -118,12 +115,17 @@ east = east - east[0]
 north = north - north[0]
 
 timebase = np.linspace(0,0.2,200)
-timebase = np.concatenate((timebase,np.linspace(0.21,1,100)))
+timebase = np.concatenate((timebase,np.linspace(0.21,0.6,100)))
 north_filt = signal.filtfilt(b, a,north)
 east_filt = signal.filtfilt(b, a,east)
 
 time_peaks,peaks,ind = stick_slip(north_filt,time)
-stack  =[]
+north0 = north[ind[0] - 50]
+east0 = east[ind[0] - 50]
+time_slip = time[ind-50]
+stacknorth  =[]
+stackeast  =[]
+stacktest = []
 dtiltslipnorth = []
 dtiltslipeast = []
 dtiltsticknorth = []
@@ -131,17 +133,22 @@ dtiltstickeast = []
 
 counter = 0
 for i in range(len(ind)-1):
-    north_cyc =  north[ind[i]:ind[i +1]-50] -  north[ind[i]]
-    east_cyc =  north[ind[i]:ind[i +1]-50] -  east[ind[i]]
+    north_cyc =  north[ind[i]:ind[i +1]-50] -  north0
+    east_cyc =  east[ind[i]:ind[i +1]-50] -  east0
+    test_cyc =  north[ind[i]:ind[i +1]-50] -  east[ind[i]]
     time_cyc = time[ind[i]:ind[i + 1]-50] - time[ind[i]]
     dtiltslipnorth.append(north[ind[i]-50])
     dtiltslipeast.append(east[ind[i]-50])
     dtiltsticknorth.append(north[ind[i]])
     dtiltstickeast.append(east[ind[i]])
-    if time_cyc[-1] > 1:
-        tiltint = np.interp(timebase,time_cyc,east_cyc)
+    if time_cyc[-1] >= 0.6:
+        eastint = np.interp(timebase,time_cyc,east_cyc)
+        northint = np.interp(timebase,time_cyc,north_cyc)
+        testint = np.interp(timebase,time_cyc,test_cyc)
 
-        stack.append(tiltint)
+        stackeast.append(eastint)
+        stacknorth.append(northint)
+        stacktest.append(testint)
         counter = counter + 1
 dtiltstnorth = np.array(dtiltsticknorth)
 tiltstnorth = -dtiltstnorth*1e-6
@@ -156,18 +163,39 @@ tiltsteast = tiltsteast - tiltsleast[0]
 tiltslnorth = tiltslnorth - tiltslnorth[0]
 tiltsleast = tiltsleast - tiltsleast[0]
 
-dtslip = np.diff(time_peaks) * 2600 * 24
-stack = np.array(stack)
-stack = np.mean(stack,axis = 0)
-stackspr = np.std(stack,axis = 0)
-timebase = timebase * 3600 * 24
-popt, pcov = curve_fit(double_exp, timebase, stack)
+
+stackeast = np.array(stackeast)
+stacknorth = np.array(stacknorth)
+stackeast = -stackeast
+stacknorth = -stacknorth
+
+stackeast = np.mean(stackeast,axis = 0)
+stacknorth = np.mean(stacknorth,axis = 0)
+stacktest = np.mean(stacktest,axis = 0)
+
+stackeastspr = np.std(stackeast,axis = 0)
+stacknorthspr = np.std(stacknorth,axis = 0)
+popteast, pcov = curve_fit(double_exp_positive, timebase, stackeast)
+poptnorth, pcov = curve_fit(double_exp_negative, timebase, stacknorth)
+#
+fiteast = double_exp_positive(timebase,*popteast)
+fitnorth = double_exp_negative(timebase,*poptnorth)
+
+
 plt.figure()
-plt.fill_between(timebase,stack-stackspr,stack+stackspr)
-plt.plot(timebase,stack,'co')
-plt.plot(timebase,double_exp(timebase,*popt),'y')
+plt.fill_between(timebase,stackeast-stackeastspr,stackeast+stackeastspr)
+plt.plot(timebase,stackeast,'c')
+plt.plot(timebase,fiteast,'r')
+plt.title('East')
 plt.figure()
-#plt.plot(time,north)
+plt.fill_between(timebase,stacknorth-stacknorthspr,stacknorth+stacknorthspr)
+plt.plot(timebase,stacknorth,'c')
+plt.plot(timebase,fitnorth,'r')
+
+plt.title('north')
+
+plt.figure()
+plt.plot(time,north)
 plt.plot(time_peaks[:-1],tiltslnorth,'ro')
 plt.plot(time_peaks[:-1],tiltstnorth,'bo')
 plt.figure()
@@ -226,8 +254,10 @@ ax[1].set_xlabel('Days')
 plt.savefig('datasetstickslip.pdf')
 
 
+stackeast = stackeast * 1e-6
+stacknorth = stacknorth * 1e-6
+tstack = timebase * 3600 * 24
 
-
-#pickle.dump([dtslip,tiltstnorth,tiltsteast,tiltslnorth,tiltsleast,gps,stack,tstack,xsh,ysh,dsh,xshErr,yshErr,dshErr,strsrc,strsrcErr],open('data2ch.pickle','wb'))
+pickle.dump([dtslip,tiltstnorth,tiltsteast,tiltslnorth,tiltsleast,gps,stackeast,stacknorth,tstack,xsh,ysh,dsh,xshErr,yshErr,dshErr,strsrc,strsrcErr],open('data2ch.pickle','wb'))
     
 
