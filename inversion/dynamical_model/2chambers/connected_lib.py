@@ -138,20 +138,19 @@ def DirectModelEmcee_inv_UF(tOrigTilt,tOrigGPS,
 
 def DirectModelEmcee_inv_LF(tOrigTilt,tOrigGPS,
                          deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                         VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
+                         VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
                          Xst,Yst,
                          ls,ld,mu,
                          rhog,cs,S,nstation):
-
+    alphaSamp = 1
     VsSamp = 10**VsExpSamp
     VdSamp  = 10**VdExpSamp
-    ksSamp = 10**ksExpSamp
     kdSamp = 10**kdExpSamp
     R5Samp =0
-    
+    ksSamp = kdSamp
     R1Samp = rhog * VdSamp /(kdSamp*S)
     T1 = (condsSamp / conddSamp )**4 * ld /ls
-    PHI = kdSamp /ksSamp * VsSamp / VdSamp
+    PHI = kdSamp /kdSamp * VsSamp / VdSamp
     params = [T1,PHI,R3Samp] #R1 is the ratio of the hydraulic parameters (for high values the top conduit is more efficient)
     tstar = VsSamp * 8 * mu * ld / (ksSamp * 3.14 * conddSamp**4)
     xstar = pspdSamp * VdSamp / (kdSamp * S)
@@ -160,7 +159,6 @@ def DirectModelEmcee_inv_LF(tOrigTilt,tOrigGPS,
     #Careful if you want to change to the UF version (this is LF)
     #xstar should be 
     #xstar = taud * Vs / (ks * S**2)
-    un_plus_R1 = 1 + R1Samp
     A = np.sqrt(T1**2 - 2*T1*PHI + 2*T1 + PHI**2 + 2*PHI + 1)
     B = -T1/2 - PHI/2 - 1./2
     C =  np.sqrt(4*PHI + (-T1 + PHI - 1)**2)/2    
@@ -177,7 +175,6 @@ def DirectModelEmcee_inv_LF(tOrigTilt,tOrigGPS,
     PD0 =   4 * alphaSamp /(1 + R1Samp)
     PSLIP = - 4 * alphaSamp * R1Samp * (1 - R5Samp)/(1 + R1Samp)
     TSLIP = 0
-    TSLIP_seed = 1
     #tseg,tslip,PS,PD,ps0 = TwoChambers_LF(np.array([0.1,0.1]),params,0,TSLIP,TSLIP_seed) # Calculate ps at the first cycle
     PS0 =  PD0 + deltap0adim
     w0 = np.array([PS0,PD0])
@@ -246,9 +243,9 @@ def log_likelihood_UF(param,
     liketx = -0.5 / sigma2Tilt * np.sum((txObs - txMod) ** 2)  -len(txObs)/ 2 * np.log(6.28 * sigma2Tilt)  
     likety = -0.5 / sigma2Tilt * np.sum((tyObs - tyMod) ** 2)  -len(tyObs)/ 2 * np.log(6.28 * sigma2Tilt)
     liketilt =  + liketx + likety 
-    likeGPS = -0.5 /sigma2GPS * np.sum((GPSObs - GPSMod) ** 2) -len(GPSObs)/ 2 * np.log(6.28 * sigma2GPS)
+    #likeGPS = -0.5 /sigma2GPS * np.sum((GPSObs - GPSMod) ** 2) -len(GPSObs)/ 2 * np.log(6.28 * sigma2GPS)
      
-    return liketilt + likeGPS
+    return liketilt #+ likeGPS
 
 def log_likelihood_LF(param,
                    xstation,ystation,
@@ -257,21 +254,21 @@ def log_likelihood_LF(param,
                    tTilt,tGPS,txObs,tyObs,GPSObs,
                    tiltErr,GPSErr,nstation):
     if np.max(nstation) ==  0:
-        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
         offxSamp = np.array([offx1])
         offySamp = np.array([offy1])
     if np.max(nstation) ==  1:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
         offxSamp = np.array([offx1,offx2])
         offySamp = np.array([offy1,offy2])
     if np.max(nstation) == 2:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
         offxSamp = np.array([offx1,offx2,offx3])
         offySamp = np.array([offy1,offy2,offy3])
         
     txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
+                                              VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
                                               xstation,ystation,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
@@ -282,7 +279,7 @@ def log_likelihood_LF(param,
     liketilt =  + liketx + likety 
     likeGPS = -0.5 /sigma2GPS * np.sum((GPSObs - GPSMod) ** 2) -len(GPSObs)/ 2 * np.log(6.28 * sigma2GPS)
      
-    return liketilt + likeGPS
+    return liketilt #+ likeGPS
 
 
 
@@ -349,30 +346,28 @@ def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
 
 def log_prior_LF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTr,locEr,nstation,flaglocation):
     if np.max(nstation) ==  0:
-        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
         offs = np.array([offx1,offy1,])
     if np.max(nstation) ==  1:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSampkdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
         offs = np.array([offx1,offy1,offx2,offy2])
     if np.max(nstation) == 2:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp, = param
         offs = np.array([offx1,offy1,offx2,offy2,offx3,offy3])
-    ksSamp = 10**ksExpSamp
     kdSamp = 10**kdExpSamp
     VsSamp= 10**VsExpSamp
     VdSamp = 10**VdExpSamp
     R1Samp = rhog * VdSamp /(kdSamp*S)
+    alphaSamp = 1
     if flaglocation =='N': # Normal priots
         conditions = []
         conditions.append(bounds[0,0] < VsExpSamp < bounds[0,1])
         conditions.append(bounds[1,0] < VdExpSamp < bounds[1,1])
-        conditions.append(bounds[2,0] < ksExpSamp < bounds[2,1])
-        conditions.append(bounds[3,0] < kdExpSamp < bounds[3,1])
-        conditions.append(rhog * (1 + R1Samp) * bounds[4,0] / (4  * alphaSamp * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[4,1] / (4 * alphaSamp * R1Samp))
-        conditions.append(bounds[5,0] * 4 * alphaSamp * R1Samp / (1 + R1Samp) < R3Samp < bounds[5,1] * 4 * alphaSamp * R1Samp / (1 + R1Samp))
-        conditions.append(bounds[6,0] < condsSamp < bounds[6,1])
-        conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
-        conditions.append(bounds[8,0] < alphaSamp < bounds[8,1])
+        conditions.append(bounds[2,0] < kdExpSamp < bounds[2,1])
+        conditions.append(rhog * (1 + R1Samp) * bounds[3,0] / (4  * alphaSamp * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[3,1] / (4 * alphaSamp * R1Samp))
+        conditions.append(bounds[4,0] * 4 * alphaSamp * R1Samp / (1 + R1Samp) < R3Samp < bounds[4,1] * 4 * alphaSamp * R1Samp / (1 + R1Samp))
+        conditions.append(bounds[5,0] < condsSamp < bounds[5,1])
+        conditions.append(bounds[6,0] < conddSamp < bounds[6,1])
         conditions.append(all(np.abs(offs)<bndtiltconst))
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
         conditions.append(-bndp0 < deltap0Samp < bndp0)
@@ -451,20 +446,20 @@ def walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltco
     if mt == 'UF':
         R1Initial = rhog * 10**pos[:,0] /(10**pos[:,2] * S)
     elif mt == 'LF':
-        R1Initial = rhog * 10**pos[:,1] /(10**pos[:,3] * S)
-    lower =  rhog * (1 + R1Initial) * bounds[4,0] / (4 * pos[:,-1] * R1Initial)
-    upper =  rhog * (1 + R1Initial) * bounds[4,1] / (4 * pos[:,-1] * R1Initial)
-    pos[:,4] = np.random.uniform(low = lower,high = upper, size = nwalkers * 10)
-    ind = pos[:,4] < 3e+7
+        R1Initial = rhog * 10**pos[:,1] /(10**pos[:,2] * S)
+    lower =  rhog * (1 + R1Initial) * bounds[3,0] / (4 * R1Initial)
+    upper =  rhog * (1 + R1Initial) * bounds[3,1] / (4 * R1Initial)
+    pos[:,3] = np.random.uniform(low = lower,high = upper, size = nwalkers * 10)
+    ind = pos[:,3] < 3e+7
     R1Initial = R1Initial[ind]
     pos = pos[ind,:]
     ind = np.random.uniform(len(pos),size = nwalkers)
     ind = ind.astype(int)
     pos = pos[ind,:]
     R1Initial = R1Initial[ind]
-    lower = bounds[5,0] * 4 * pos[:,-1] * R1Initial / (1 + R1Initial)
-    upper = bounds[5,1] * 4 * pos[:,-1] * R1Initial / (1 + R1Initial)
-    pos[:,5] = np.random.uniform(low = lower,high = upper, size = nwalkers)
+    lower = bounds[4,0] * 4  * R1Initial / (1 + R1Initial)
+    upper = bounds[4,1] * 4  * R1Initial / (1 + R1Initial)
+    pos[:,4] = np.random.uniform(low = lower,high = upper, size = nwalkers)
     
     locs = np.zeros((nwalkers,6))
     for i in range(len(locTruth)):
@@ -535,6 +530,41 @@ def walkers_init_fromMAP(pathmap,nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,
         pos[:,5] = np.random.normal(loc = R3Samp, scale = sigma *R3Samp, size = nwalkers  )
         pos[:,6] = np.random.normal(loc = condsSamp, scale = sigma *condsSamp, size = nwalkers  )
         pos[:,8] = np.random.normal(loc = alphaSamp, scale = sigma *alphaSamp, size = nwalkers  )
+    locs = np.zeros((nwalkers,6))
+    for i in range(len(locTruth)):
+        if flaglocation == 'N': # normal priors
+            locs[:,i] = np.random.normal(loc = locTruth[i], scale =locErr[i],size = nwalkers)
+        elif flaglocation == 'F': #flat uniform priors:
+            locs[:,i] = np.random.uniform(low = boundsLoc[i][0] , high = boundsLoc[i][1], size = nwalkers)
+    pos = np.concatenate((locs,pos),axis = 1)
+    
+    offtilt = np.zeros((nwalkers, Nst * 2))
+    for i in range(Nst * 2):
+        offtilt[:,i] = np.random.uniform(low = -bndtiltconst, high = bndtiltconst, size =nwalkers)
+    pos = np.concatenate((offtilt,pos),axis = 1)
+    
+    offsGPS = np.random.uniform(low = -bndGPSconst , high = 0,size = (nwalkers,1))
+    pos = np.concatenate((offsGPS,pos),axis = 1 )
+    if mt == 'UF':
+        initialp = np.random.uniform(low = -bndp0 , high = bndp0,size = (nwalkers,1))
+    elif mt == 'LF':
+        initialp = np.random.uniform(low = - bndp0 , high = bndp0,size = (nwalkers,1))
+
+    pos = np.concatenate((initialp,pos),axis = 1)
+    nwalkers, ndim = pos.shape
+    return pos,nwalkers,ndim
+
+def walkers_init_frompymc(trace,nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,bndp0,Nst,mt,flaglocation):
+    pos = np.zeros((nwalkers,ndim)) 
+    ind = np.random.randint(trace['condd_mod'].shape[0],size = nwalkers)
+    if mt == 'LF':
+        pos[:,0] = np.log10(trace['Vs_mod'][ind])
+        pos[:,1] = np.log10(trace['Vd_mod'][ind])
+        pos[:,2] = np.log10(trace['kd_mod'][ind])
+        pos[:,3] = trace['pspd_mod'][ind]
+        pos[:,4] = trace['ratio'][ind]
+        pos[:,5] = trace['conds_mod'][ind]
+        pos[:,6] = trace['condd_mod'][ind]
     locs = np.zeros((nwalkers,6))
     for i in range(len(locTruth)):
         if flaglocation == 'N': # normal priors

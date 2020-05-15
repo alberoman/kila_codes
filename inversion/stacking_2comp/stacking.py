@@ -239,15 +239,15 @@ yshErr = panda_trace.std()['ySource1']
 strsrcErr = panda_trace.std()['strSource2']
 time_slip = time[ind-50]
 fig, ax = plt.subplots(nrows = 2, ncols = 1, figsize = (3,3))
-ax[0].plot(time_peaks[:-1],-dtiltsteast,'bo',markersize = 3)
-ax[0].plot(time,-east_filt)
-ax[0].plot(time_slip[:-1],-dtiltsleast,'bo',markersize = 3)
+ax[0].plot(time_peaks[:-1],dtiltsteast,'bo',markersize = 3)
+ax[0].plot(time,east_filt)
+ax[0].plot(time_slip[:-1],dtiltsleast,'bo',markersize = 3)
 ax[0].set_xlim([1,30])
 ax[0].set_ylabel('UWD EW [$\mu$rad]',fontsize= 12)
 
-ax[1].plot(time_peaks[:-1],-dtiltstnorth,'bo',markersize = 3)
-ax[1].plot(time,-north_filt)
-ax[1].plot(time_slip[:-1],-dtiltslnorth,'bo',markersize = 3)
+ax[1].plot(time_peaks[:-1],dtiltstnorth,'bo',markersize = 3)
+ax[1].plot(time,north_filt)
+ax[1].plot(time_slip[:-1],dtiltslnorth,'bo',markersize = 3)
 ax[1].set_ylabel('UWD NS [$\mu$rad]',fontsize= 12)
 ax[1].set_xlim([1,30])
 ax[1].set_xlabel('Days')

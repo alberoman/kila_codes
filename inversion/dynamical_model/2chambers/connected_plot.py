@@ -19,16 +19,17 @@ import matplotlib.pyplot as plt
 import pickle 
 from connected_lib import *
 import os
+from scipy import signal
 import corner
 from shutil import copyfile
-discardval = 50000
+discardval = 1
 thinval = 1
 
 path_results = '../../../../results/conn/'
-pathrun = 'fromMAP'
+pathrun = 'debug'
 model_type = 'LF'
 
-stations  = ['UWD']
+stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'
 flaglocation = 'N'      # This is the flag for locations priors, F for Uniform, N for Normal
 
@@ -63,8 +64,11 @@ except:
 #x,y,ls,ld,pt,mu,rhog,const,S,Nmax,tiltErr,GPSErr = fix_par
 
 np.random.seed(1234)
+b, a = signal.butter(2, 0.3)
 
 Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0= pickle.load(open(pathgg + 'data.pickle','rb'))
+#tx = signal.filtfilt(b, a,ty)
+#ty = signal.filtfilt(b, a,tx)
 a = pickle.load(open(pathgg + 'parameters.pickle','rb'))
 if len(a)== 17:
     bounds,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = a
@@ -87,15 +91,15 @@ nwalkers,ndim = reader.shape
 samples = reader.get_chain(flat = True,discard = discardval)
 parmax = samples[np.argmax(reader.get_log_prob(flat = True,discard = discardval))]
 if Nst == 1:
-    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp = parmax
+    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp= parmax
     offxSamp = np.array([offx1])
     offySamp = np.array([offy1])
 elif Nst == 2:
-    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp = parmax
+    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parmax
     offxSamp = np.array([offx1,offx2])
     offySamp = np.array([offy1,offy2])
 elif Nst == 3:
-    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp = parmax
+    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp= parmax
     offxSamp = np.array([offx1,offx2,offx3])
     offySamp = np.array([offy1,offy2,offy3])    
 if model_type == 'UF':
@@ -108,7 +112,7 @@ if model_type == 'UF':
 elif model_type == 'LF':
     txModbest,tyModbest,GPSModbest = DirectModelEmcee_inv_LF(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
+                                              VsExpSamp,VdExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                                               x,y,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
@@ -119,15 +123,15 @@ counter = 0
 samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
 for parameters in samples[np.random.randint(len(samples), size = 90)]:
     if Nst == 1:
-        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp = parameters
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp = parameters
         offxSamp = np.array([offx1])
         offySamp = np.array([offy1])
     elif Nst == 2:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp = parameters
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp= parameters
         offxSamp = np.array([offx1,offx2])
         offySamp = np.array([offy1,offy2])
     elif Nst == 3:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,FdsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp, alphaSamp = parameters
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,FdsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp= parameters
         offxSamp = np.array([offx1,offx2,offx3])
         offySamp = np.array([offy1,offy2,offy3])    
     if model_type == 'UF':
@@ -141,7 +145,7 @@ for parameters in samples[np.random.randint(len(samples), size = 90)]:
     elif model_type == 'LF':
         txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
                         deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                        VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
+                        VsExpSamp,VdExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp,conddSamp,
                         x,y,
                         ls,ld,mu,
                         rhog,const,S,nstation)
@@ -169,7 +173,7 @@ for i in range(len(stations)):
     plt.figure()
     plt.plot(tTiltStation / (3600 * 24),txStation,'b')
     plt.plot(tTiltStation / (3600 * 24),txModbestStation,'r')
-    #plt.fill_between(tTiltStation /(3600 * 24),txmedStation-txsprStation,txmedStation + txsprStation,color='grey',alpha=0.5)
+    plt.fill_between(tTiltStation /(3600 * 24),txmedStation-txsprStation,txmedStation + txsprStation,color='grey',alpha=0.5)
     plt.xlabel('Time [Days]')
     plt.ylabel('Tilt-x ' + stations[i])
     plt.savefig(pathfig + 'tx_' + stations[i] + '.pdf')
@@ -177,7 +181,7 @@ for i in range(len(stations)):
     plt.figure()
     plt.plot(tTiltStation / (3600 * 24),tyStation,'b')
     plt.plot(tTiltStation / (3600 * 24),tyModbestStation,'r')
-    #plt.fill_between(tTiltStation / (3600 * 24),tymedStation - tysprStation,tymedStation + tysprStation,color='grey',alpha=0.5)
+    plt.fill_between(tTiltStation / (3600 * 24),tymedStation - tysprStation,tymedStation + tysprStation,color='grey',alpha=0.5)
     plt.xlabel('Time [Days]')
     plt.ylabel('Tilt-y ' + stations[i])
     plt.savefig(pathfig + 'ty_' + stations[i] + '.pdf')
@@ -200,10 +204,10 @@ for i in range(ndim):
 plt.savefig(pathfig + 'chains.pdf')
 plt.close('all')
 samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
-plt.figure()
-corner.corner(samples,truths = parmax)
-plt.savefig(pathfig + 'hist.pdf')
-plt.close('all')
+#plt.figure()
+#corner.corner(samples,truths = parmax)
+#plt.savefig(pathfig + 'hist.pdf')
+#plt.close('all')
 
 os.remove(pathgg + 'progress_temp.h5')
 

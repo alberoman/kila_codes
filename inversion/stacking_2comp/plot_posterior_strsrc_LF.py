@@ -26,8 +26,7 @@ sys.path.insert(1,'../../')
 import matplotlib.gridspec as gridspec
 
 path_results = '../../../results/'
-
-g
+from matplotlib import rcParams
 
 g = 9.8
 rho = 2700
@@ -165,37 +164,41 @@ ticks = ticks[::2]
 fig = plt.figure(figsize=(5, 8))
 gs = gridspec.GridSpec(nrows=3, ncols=10, height_ratios=[1, 1, 1])
 ax0 = fig.add_subplot(gs[0, 1:-1])
-ax0.plot(n,gps,'bo')
-ax0.plot(n,xMAP,'mo')
-ax0.errorbar(n,xmed,xstd,fmt='none')
+ax0.plot(n,-gps,'bo')
+ax0.plot(n,-xMAP,'mo')
+ax0.errorbar(n,-xmed,-2*xstd,fmt='none')
 ax0.set_ylabel('CALS [m]',fontsize= 12)
 ax0.set_xticks(ticks)
 ax0.legend(['Data','MAP'],fontsize= 10)
+ax0.tick_params(labelsize = 10)
 
 ax1 = fig.add_subplot(gs[1, 1:-1])
 
-ax1.plot(n,tiltslx*1e+6,'bo')
-ax1.plot(n,tslxMAP*1e+6,'mo')
-ax1.errorbar(n,tslxmed*1e+6,tslxstd*1e+6,fmt='none',ecolor = 'k' )
+ax1.plot(n,-tiltslx*1e+6,'bo')
+ax1.plot(n,-tslxMAP*1e+6,'mo')
+ax1.errorbar(n,-tslxmed*1e+6,2*tslxstd*1e+6,fmt='none',ecolor = 'k' )
 
-ax1.plot(n,tiltstx*1e+6,'bo')
-ax1.plot(n,tstxMAP*1e+6,'mo')
-ax1.errorbar(n,tstxmed*1e+6,tstxstd*1e+6,fmt='none',ecolor = 'k')
+ax1.plot(n,-tiltstx*1e+6,'bo')
+ax1.plot(n,-tstxMAP*1e+6,'mo')
+ax1.errorbar(n,-tstxmed*1e+6,2*tstxstd*1e+6,fmt='none',ecolor = 'k')
 ax1.set_ylabel('UWD EW [$\mu$rad]',fontsize= 12)
 ax1.set_xticks(ticks)
+ax1.tick_params(labelsize = 10)
 
 ax2 = fig.add_subplot(gs[2, 1:-1])
-ax2.plot(n,tiltsly*1e+6,'bo')
-ax2.plot(n,tslyMAP*1e+6,'mo')
-ax2.errorbar(n,tslymed*1e+6,tslystd*1e+6,fmt='none',ecolor = 'k')
+ax2.plot(n,-tiltsly*1e+6,'bo')
+ax2.plot(n,-tslyMAP*1e+6,'mo')
+ax2.errorbar(n,-tslymed*1e+6,2*tslystd*1e+6,fmt='none',ecolor = 'k')
 
-ax2.plot(n,tiltsty*1e+6,'bo')
-ax2.plot(n,tstyMAP*1e+6,'mo')
-ax2.errorbar(n,tstymed*1e+6,tstystd*1e+6,fmt='none',ecolor = 'k')
+ax2.plot(n,-tiltsty*1e+6,'bo')
+ax2.plot(n,-tstyMAP*1e+6,'mo')
+ax2.errorbar(n,-tstymed*1e+6,2*tstystd*1e+6,fmt='none',ecolor = 'k')
 
 ax2.set_ylabel('UWD NS [$\mu$rad]',fontsize= 12)
 ax2.set_xlabel('Collapse number',fontsize= 12)
 ax2.set_xticks(ticks)
+ax2.tick_params(labelsize = 10)
+
 
 plt.tight_layout()
 fig.align_ylabels()
@@ -206,18 +209,25 @@ stackmed = np.median(ppc['stacky_obs'],axis = 0)
 stackstd = np.std(ppc['stacky_obs'],axis = 0)
 tstack = tstack/(3600)
 
-plt.figure()
-plt.plot(tstack,-stacky,'b')
+fig = plt.figure(figsize=(4, 3))
+plt.plot(tstack,-stacky,'b',linewidth = 4)
 plt.plot(tstack,-stackyMAP,'m')
 plt.fill_between(tstack,-stackmed-stackstd,-stackmed+stackstd,alpha = 0.5)
 ax = plt.gca()
 ax.set_xlabel('Time [Hours]',fontsize= 12)
 ax.set_ylabel('UWD NS [$\mu rad$]',fontsize = 12)
 ax.set_xlim([0,14])
+ax.tick_params(labelsize = 10)
+
 plt.tight_layout()
 plt.savefig('MAPstack_strsrc_LF.pdf')
+rcParams["font.size"] = 16
 
 plt.figure()
-corner.corner( panda_trace[['xsh_mod','ysh_mod','dsh_mod','pspd_mod','condd_mod','conds_mod','kd_mod','Vs_mod','Vd_mod','ptps_mod']],color = 'black',
-              truths =[results['MAP']['xsh_mod'],results['MAP']['ysh_mod'],results['MAP']['dsh_mod'],results['MAP']['pspd_mod']/1e+6,results['MAP']['condd_mod'],results['MAP']['conds_mod'],np.log10(results['MAP']['kd_mod']),np.log10(results['MAP']['Vs_mod']),np.log10(results['MAP']['Vd_mod']),results['MAP']['ptps_mod']])
+#corner.corner( panda_trace[['xsh_mod','ysh_mod','dsh_mod','pspd_mod','condd_mod','conds_mod','kd_mod','Vs_mod','Vd_mod']],color = 'black',
+#              truths =[results['MAP']['xsh_mod'],results['MAP']['ysh_mod'],results['MAP']['dsh_mod'],results['MAP']['pspd_mod']/1e+6,results['MAP']['condd_mod'],results['MAP']['conds_mod'],np.log10(results['MAP']['kd_mod']),np.log10(results['MAP']['Vs_mod']),np.log10(results['MAP']['Vd_mod'])])
+
+#nopos
+corner.corner( panda_trace[['pspd_mod','condd_mod','conds_mod','kd_mod','Vs_mod','Vd_mod']],color = 'black',
+              truths =[results['MAP']['pspd_mod']/1e+6,results['MAP']['condd_mod'],results['MAP']['conds_mod'],np.log10(results['MAP']['kd_mod']),np.log10(results['MAP']['Vs_mod']),np.log10(results['MAP']['Vd_mod'])])
 plt.savefig('corner_strsrc_LF.pdf')
