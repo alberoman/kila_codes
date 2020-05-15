@@ -22,9 +22,9 @@ path_results = '../../../../results/conn/'
 
     
 
-pathrun = 'noGPS'
+pathrun = 'gpsscale'
 
-model_type = 'LF'
+model_type = 'UF'
 
 stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'
@@ -39,10 +39,10 @@ def parameters_init(mt):
     Ncycmax = 60
 
     if mt == 'UF':
-        bounds = np.array([[+8,10],[+9,+12],[+8,+11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,20],])
+        bounds = np.array([[+8,10],[+9,+12],[+8,+11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,20],[0.3,0.7]])
         boundsLoc = np.array([[-1000,1000],[1200,2500],[500,1500],[-1500,+1500],[-1500,2500],[2000,4000]])
     elif mt == 'LF':                                                 
-        bounds = np.array([[+8,+12],[+8,+10],[+8,+11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,20]])
+        bounds = np.array([[+8,+12],[+8,+10],[+8,+11],[dxmin,dxmax],[Ncycmin,Ncycmax],[1,10],[1,20],[0.3,0.7]])
         boundsLoc = np.array([[-1000,+1000],[-1000,1000],[2000,5000],[-500,0],[1500,2000],[500,1300]])
 
     bndtiltconst = 10000
@@ -66,7 +66,7 @@ def parameters_init(mt):
     poisson = 0.25
     lame = 1e+9
     #Cylinder parameters
-    Rcyl = 1.0e+3
+    Rcyl = 7.0e+2
     ndim = len(bounds)
     const = -9. /(4 * 3.14) * (1 - poisson) / lame
     S = 3.14 * Rcyl**2 

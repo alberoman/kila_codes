@@ -71,15 +71,15 @@ def TwoChambers_LF_timein(w0,par,pslip,tslip,time,ps,pd,t_x,x_data,N,alpha):
 
 def DirectModelEmcee_inv_UF(tOrigTilt,tOrigGPS,
                          deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                         VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
+                         VsExpSamp,VdExpSamp,ksExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,gpsscaleSamp,
                          Xst,Yst,
                          ls,ld,mu,
                          rhog,cs,S,nstation):
-                         
+    alphaSamp = 1                     
     VsSamp = 10**VsExpSamp
     VdSamp  = 10**VdExpSamp
     ksSamp = 10**ksExpSamp
-    kdSamp = 10**kdExpSamp
+    kdSamp =ksSamp
     R5Samp =0
     R1Samp = rhog * VsSamp /(ksSamp*S)
     T1 = (condsSamp / conddSamp )**4 * ld /ls
@@ -131,14 +131,14 @@ def DirectModelEmcee_inv_UF(tOrigTilt,tOrigGPS,
     for i in range((np.max(nstation) + 1)):
         txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]*1e-6
         tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]*1e-6
-    gpsMod = gpsMod  + offGPSSamp
+    gpsMod = gpsMod * gpsscaleSamp  + offGPSSamp
     return txMod,tyMod,gpsMod#,dtxMod, dtyMod
 
 
 
 def DirectModelEmcee_inv_LF(tOrigTilt,tOrigGPS,
                          deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                         VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
+                         VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,gpsscaleSamp,
                          Xst,Yst,
                          ls,ld,mu,
                          rhog,cs,S,nstation):
@@ -207,7 +207,7 @@ def DirectModelEmcee_inv_LF(tOrigTilt,tOrigGPS,
     for i in range((np.max(nstation) + 1)):
         txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]*1e-6
         tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]*1e-6
-    gpsMod = gpsMod  + offGPSSamp
+    gpsMod = gpsMod * gpsscaleSamp  + offGPSSamp
     return txMod,tyMod,gpsMod#,dtxMod, dtyMod
 
 
@@ -221,54 +221,20 @@ def log_likelihood_UF(param,
                    tTilt,tGPS,txObs,tyObs,GPSObs,
                    tiltErr,GPSErr,nstation):
     if np.max(nstation) ==  0:
-        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,gpsscaleSamp = param
         offxSamp = np.array([offx1])
         offySamp = np.array([offy1])
     if np.max(nstation) ==  1:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,gpsscaleSamp = param
         offxSamp = np.array([offx1,offx2])
         offySamp = np.array([offy1,offy2])
     if np.max(nstation) == 2:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,gpsscaleSamp = param
         offxSamp = np.array([offx1,offx2,offx3])
         offySamp = np.array([offy1,offy2,offy3])
     txMod,tyMod,GPSMod = DirectModelEmcee_inv_UF(tTilt,tGPS,
                                               deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                                              VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
-                                              xstation,ystation,
-                                              ls,ld,mu,
-                                              rhog,const,S,nstation)
-    sigma2Tilt = tiltErr ** 2
-    sigma2GPS = GPSErr ** 2
-    liketx = -0.5 / sigma2Tilt * np.sum((txObs - txMod) ** 2)  -len(txObs)/ 2 * np.log(6.28 * sigma2Tilt)  
-    likety = -0.5 / sigma2Tilt * np.sum((tyObs - tyMod) ** 2)  -len(tyObs)/ 2 * np.log(6.28 * sigma2Tilt)
-    liketilt =  + liketx + likety 
-    #likeGPS = -0.5 /sigma2GPS * np.sum((GPSObs - GPSMod) ** 2) -len(GPSObs)/ 2 * np.log(6.28 * sigma2GPS)
-     
-    return liketilt #+ likeGPS
-
-def log_likelihood_LF(param,
-                   xstation,ystation,
-                   ls,ld,mu,
-                   rhog,const,S,
-                   tTilt,tGPS,txObs,tyObs,GPSObs,
-                   tiltErr,GPSErr,nstation):
-    if np.max(nstation) ==  0:
-        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
-        offxSamp = np.array([offx1])
-        offySamp = np.array([offy1])
-    if np.max(nstation) ==  1:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
-        offxSamp = np.array([offx1,offx2])
-        offySamp = np.array([offy1,offy2])
-    if np.max(nstation) == 2:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
-        offxSamp = np.array([offx1,offx2,offx3])
-        offySamp = np.array([offy1,offy2,offy3])
-        
-    txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
-                                              deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                                              VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
+                                              VsExpSamp,VdExpSamp,ksExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,gpsscaleSamp,
                                               xstation,ystation,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
@@ -279,22 +245,55 @@ def log_likelihood_LF(param,
     liketilt =  + liketx + likety 
     likeGPS = -0.5 /sigma2GPS * np.sum((GPSObs - GPSMod) ** 2) -len(GPSObs)/ 2 * np.log(6.28 * sigma2GPS)
      
-    return liketilt #+ likeGPS
+    return liketilt + likeGPS
+
+def log_likelihood_LF(param,
+                   xstation,ystation,
+                   ls,ld,mu,
+                   rhog,const,S,
+                   tTilt,tGPS,txObs,tyObs,GPSObs,
+                   tiltErr,GPSErr,nstation):
+    if np.max(nstation) ==  0:
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,gpsscaleSamp = param
+        offxSamp = np.array([offx1])
+        offySamp = np.array([offy1])
+    if np.max(nstation) ==  1:
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,gpsscaleSamp = param
+        offxSamp = np.array([offx1,offx2])
+        offySamp = np.array([offy1,offy2])
+    if np.max(nstation) == 2:
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,gpsscaleSamp = param
+        offxSamp = np.array([offx1,offx2,offx3])
+        offySamp = np.array([offy1,offy2,offy3])
+        
+    txMod,tyMod,GPSMod = DirectModelEmcee_inv_LF(tTilt,tGPS,
+                                              deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
+                                              VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,gpsscaleSamp,
+                                              xstation,ystation,
+                                              ls,ld,mu,
+                                              rhog,const,S,nstation)
+    sigma2Tilt = tiltErr ** 2
+    sigma2GPS = GPSErr ** 2
+    liketx = -0.5 / sigma2Tilt * np.sum((txObs - txMod) ** 2)  -len(txObs)/ 2 * np.log(6.28 * sigma2Tilt)  
+    likety = -0.5 / sigma2Tilt * np.sum((tyObs - tyMod) ** 2)  -len(tyObs)/ 2 * np.log(6.28 * sigma2Tilt)
+    liketilt =  + liketx + likety 
+    likeGPS = -0.5 /sigma2GPS * np.sum((GPSObs - GPSMod) ** 2) -len(GPSObs)/ 2 * np.log(6.28 * sigma2GPS)
+     
+    return liketilt + likeGPS
 
 
 
 def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTr,locEr,nstation,flaglocation):
     if np.max(nstation) ==  0:
-        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamppspdSamp,R3Samp,condsSamp, conddSamp,gpsscaleSamp = param
         offs = np.array([offx1,offy1,])
     if np.max(nstation) ==  1:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,gpsscaleSamp = param
         offs = np.array([offx1,offy1,offx2,offy2])
     if np.max(nstation) == 2:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,gpsscaleSamp= param
         offs = np.array([offx1,offy1,offx2,offy2,offx3,offy3])
     ksSamp = 10**ksExpSamp
-    kdSamp = 10**kdExpSamp
     VsSamp= 10**VsExpSamp
     VdSamp = 10**VdExpSamp
     R1Samp = rhog * VsSamp /(ksSamp*S)
@@ -303,12 +302,11 @@ def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
         conditions.append(bounds[0,0] < VsExpSamp < bounds[0,1])
         conditions.append(bounds[1,0] < VdExpSamp < bounds[1,1])
         conditions.append(bounds[2,0] < ksExpSamp < bounds[2,1])
-        conditions.append(bounds[3,0] < kdExpSamp < bounds[3,1])
-        conditions.append(rhog * (1 + R1Samp) * bounds[4,0] / (4  * alphaSamp * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[4,1] / (4 * alphaSamp * R1Samp))
-        conditions.append(bounds[5,0] * 4 * alphaSamp * R1Samp / (1 + R1Samp) < R3Samp < bounds[5,1] * 4 * alphaSamp * R1Samp / (1 + R1Samp))
-        conditions.append(bounds[6,0] < condsSamp < bounds[6,1])
-        conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
-        conditions.append(bounds[8,0] < alphaSamp < bounds[8,1])
+        conditions.append(rhog * (1 + R1Samp) * bounds[3,0] / (4  * R1Samp) < pspdSamp < rhog * (1 + R1Samp) * bounds[3,1] / (4 * R1Samp))
+        conditions.append(bounds[4,0] * 4  * R1Samp / (1 + R1Samp) < R3Samp < bounds[4,1] * 4 * R1Samp / (1 + R1Samp))
+        conditions.append(bounds[5,0] < condsSamp < bounds[5,1])
+        conditions.append(bounds[6,0] < conddSamp < bounds[6,1])
+        conditions.append(bounds[7,0] < gpsscaleSamp < bounds[7,1])
         conditions.append(all(np.abs(offs)<bndtiltconst))
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
         conditions.append(-bndp0 < deltap0Samp < bndp0)
@@ -346,13 +344,13 @@ def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
 
 def log_prior_LF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTr,locEr,nstation,flaglocation):
     if np.max(nstation) ==  0:
-        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,gpsscaleSamp = param
         offs = np.array([offx1,offy1,])
     if np.max(nstation) ==  1:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSampkdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSampkdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,gpsscaleSamp = param
         offs = np.array([offx1,offy1,offx2,offy2])
     if np.max(nstation) == 2:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp, = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,gpsscaleSamp = param
         offs = np.array([offx1,offy1,offx2,offy2,offx3,offy3])
     kdSamp = 10**kdExpSamp
     VsSamp= 10**VsExpSamp
@@ -368,6 +366,8 @@ def log_prior_LF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
         conditions.append(bounds[4,0] * 4 * alphaSamp * R1Samp / (1 + R1Samp) < R3Samp < bounds[4,1] * 4 * alphaSamp * R1Samp / (1 + R1Samp))
         conditions.append(bounds[5,0] < condsSamp < bounds[5,1])
         conditions.append(bounds[6,0] < conddSamp < bounds[6,1])
+        conditions.append(bounds[7,0] < gpsscaleSamp < bounds[7,1])
+
         conditions.append(all(np.abs(offs)<bndtiltconst))
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
         conditions.append(-bndp0 < deltap0Samp < bndp0)
