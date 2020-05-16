@@ -123,14 +123,16 @@ def DirectModelEmcee_inv_UF(tOrigTilt,tOrigGPS,
     coeffyd = cs * ddSamp * (Yst -  ydSamp) / (ddSamp**2 + (Xst -  xdSamp)**2 + (Yst -  ydSamp)**2 )**(5./2) 
     txMod = coeffxs * VsSamp * ps + coeffxd * VdSamp * pd
     tyMod = coeffys * VsSamp * ps + coeffyd * VdSamp * pd
+    txMod  = txMod * 1e+6
+    tyMod  = tyMod * 1e+6
     #dtxMod = np.diff(txMod[j]) / np.diff(tTiltList[j]))
     #dtyMod.append(np.diff(tyMod[j]) / np.diff(tTiltList[j]))
     
     gpsMod = gps * xstar
     tOrigGPS = tOrigGPS * tstar
     for i in range((np.max(nstation) + 1)):
-        txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]*1e-6
-        tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]*1e-6
+        txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]
+        tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]
     gpsMod = gpsMod * gpsscaleSamp  + offGPSSamp
     return txMod,tyMod,gpsMod#,dtxMod, dtyMod
 
@@ -177,6 +179,7 @@ def DirectModelEmcee_inv_LF(tOrigTilt,tOrigGPS,
     TSLIP = 0
     #tseg,tslip,PS,PD,ps0 = TwoChambers_LF(np.array([0.1,0.1]),params,0,TSLIP,TSLIP_seed) # Calculate ps at the first cycle
     PS0 =  PD0 + deltap0adim
+    #PS0 = 0
     w0 = np.array([PS0,PD0])
     TSLIP = 0
     N_cycles = ((1 + R1Samp)/ (4 * alphaSamp * R1Samp) * R3Samp)-1
@@ -198,6 +201,8 @@ def DirectModelEmcee_inv_LF(tOrigTilt,tOrigGPS,
     coeffyd = cs * ddSamp * (Yst -  ydSamp) / (ddSamp**2 + (Xst -  xdSamp)**2 + (Yst -  ydSamp)**2 )**(5./2) 
     txMod = coeffxs * VsSamp * ps + coeffxd * VdSamp * pd
     tyMod = coeffys * VsSamp * ps + coeffyd * VdSamp * pd
+    txMod = txMod*1e+6
+    tyMod = tyMod*1e+6
     #dtxMod = np.diff(txMod[j]) / np.diff(tTiltList[j]))
     #dtyMod.append(np.diff(tyMod[j]) / np.diff(tTiltList[j]))
     
@@ -205,8 +210,8 @@ def DirectModelEmcee_inv_LF(tOrigTilt,tOrigGPS,
     tOrigTilt = tOrigTilt / tstar
     tOrigGPS = tOrigGPS * tstar
     for i in range((np.max(nstation) + 1)):
-        txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]*1e-6
-        tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]*1e-6
+        txMod[nstation == i] = txMod[nstation == i] + offxSamp[i]
+        tyMod[nstation == i] = tyMod[nstation == i] + offySamp[i]
     gpsMod = gpsMod * gpsscaleSamp  + offGPSSamp
     return txMod,tyMod,gpsMod#,dtxMod, dtyMod
 
@@ -370,7 +375,7 @@ def log_prior_LF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
 
         conditions.append(all(np.abs(offs)<bndtiltconst))
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
-        conditions.append(-bndp0 < deltap0Samp < bndp0)
+        conditions.append(-bndp0 < deltap0Samp < 0)
         if all(conditions):
             logprob =  -0.5 * np.log(6.28*locEr[0]**2)- 0.5*(xsSamp-locTr[0])**2/locEr[0]**2
             logprob = logprob -0.5* np.log(6.28*locEr[1]**2)- 0.5*(ysSamp-locTr[1])**2/locEr[1]**2
@@ -479,7 +484,7 @@ def walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltco
     if mt == 'UF':
         initialp = np.random.uniform(low = -bndp0 , high = bndp0,size = (nwalkers,1))
     elif mt == 'LF':
-        initialp = np.random.uniform(low = - bndp0 , high = bndp0,size = (nwalkers,1))
+        initialp = np.random.uniform(low = - bndp0 , high = 0,size = (nwalkers,1))
 
     pos = np.concatenate((initialp,pos),axis = 1)
     nwalkers, ndim = pos.shape

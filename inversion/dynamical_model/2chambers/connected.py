@@ -46,10 +46,10 @@ def parameters_init(mt):
         boundsLoc = np.array([[-1000,+1000],[-1000,1000],[2000,5000],[-500,0],[1500,2000],[500,1300]])
 
     bndtiltconst = 10000
-    bndGPSconst = 200
+    bndGPSconst = 60
     bnddeltaP0 = 1e+7
-    tiltErr = 1e-5
-    GPSErr = 1e-2
+    tiltErr = 10
+    GPSErr = 1
     locErrFact = 5
     
     a_parameter = 5
@@ -146,6 +146,8 @@ else:
     niter = input('How many iteration you want to run? ')
     bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog = parameters_init(model_type)
     Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0 = preparation(stations,date,locErrFact,model_type)
+    tx = tx * 1e+6
+    ty = ty * 1e+6
     pos,nwalkers,ndim = walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,bndp0,Nst,model_type,flaglocation)
     pickle.dump((Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0),open(pathgg + 'data.pickle','wb'))
     pickle.dump((bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_parameter,thin,nwalkers,ls,ld,mu,ndim,const,S,rhog),open(pathgg + 'parameters.pickle','wb'))
