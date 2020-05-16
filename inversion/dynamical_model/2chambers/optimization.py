@@ -7,7 +7,7 @@ Created on Sun Apr 19 09:05:53 2020
 """
 from scipy import optimize
 import numpy as np
-from main_lib import log_likelihood_LF
+from conn_lib import log_likelihood_LF
 import pickle
 from preparedata import preparation
 import emcee
@@ -64,10 +64,10 @@ bounds,boundsLoc,bndtiltconst,bndGPSconst,tiltErr,GPSErr,bndp0,locErrFact,a_para
 Nst,nstation,x,y,tTilt,tx,ty,tGPS,GPS,locTruth,locErr,t0 = preparation(stations,date,locErrFact,model_type)
 
 fix_par= x,y,ls,ld,mu,rhog,const,S,tTilt,tGPS,tx,ty,GPS,tiltErr,GPSErr,nstation
-reader = emcee.backends.HDFBackend(pathbestfit + filename, read_only = True )
-nwalkers,ndim = reader.shape
-samples = reader.get_chain(flat = True)
-parmax = samples[np.argmax(reader.get_log_prob(flat = True))]
-bnds = ((-bndp0,bndp0),(-100,100),(-2000,2000),(-2000,2000),(-2000,2000),(-2000,2000),(-2000,2000),(-2000,2000),(-1000,1000),(-3000,1000),(2000,5000),(-1000,1000),(1000,2000),(300,1500),(+9,+12),(8,9),(8,11),(8,11),(1e+5,2e+7),(1e+6,3e+7),(1,10),(1,30),(0.2,2))
+
+bnds = ((-bndp0,bndp0),(-100,100),(-2000,2000),(-2000,2000),(-2000,2000),(-2000,2000),(-2000,2000),(-2000,2000),(-1000,1000),(-3000,1000),(2000,5000),(-1000,1000),(1000,2000),(300,1500),(+9,+12),(9,12),(8,11),(1e+5,5e+6),(1e+6,3e+7),(1,10),(1,30),(0.2,0.7))
 minimizer_kwargs = {"method":"L-BFGS-B", "args":fix_par,'bounds':bnds}
-res = optimize.basinhopping(-log_likelihood_LF_opt,parmax, minimizer_kwargs=minimizer_kwargs,niter=200,disp = True)
+initial = np.array([0,-40,0,0,0,0,0,0,])
+soln = minimize(-log_likelihood_LF, initial, args=(x, y, yerr))
+
+#res = optimize.basinhopping(-log_likelihood_LF_opt,parmax, minimizer_kwargs=minimizer_kwargs,disp = True)

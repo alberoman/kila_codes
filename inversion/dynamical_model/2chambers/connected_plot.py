@@ -27,8 +27,8 @@ thinval = 1
 
 path_results = '../../../../results/conn/'
 pathrun = 'gpsscale'
-model_type = 'UF'
-
+model_type = 'LF'
+limit = 10
 stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'
 flaglocation = 'N'      # This is the flag for locations priors, F for Uniform, N for Normal
@@ -89,6 +89,7 @@ filename = 'progress_temp.h5'
 reader = emcee.backends.HDFBackend(pathgg + filename, read_only = True )
 nwalkers,ndim = reader.shape
 samples = reader.get_chain(flat = True,discard = discardval)
+samples 
 parmax = samples[np.argmax(reader.get_log_prob(flat = True,discard = discardval))]
 if Nst == 1:
     deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,gpsscaleSamp= parmax

@@ -24,7 +24,7 @@ path_results = '../../../../results/conn/'
 
 pathrun = 'gpsscale'
 
-model_type = 'UF'
+model_type = 'LF'
 
 stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'
