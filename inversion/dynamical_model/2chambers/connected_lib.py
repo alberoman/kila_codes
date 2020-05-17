@@ -71,7 +71,7 @@ def TwoChambers_LF_timein(w0,par,pslip,tslip,time,ps,pd,t_x,x_data,N,alpha):
 
 def DirectModelEmcee_inv_UF(tOrigTilt,tOrigGPS,
                          deltap0Samp,offGPSSamp,offxSamp,offySamp,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,
-                         VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,
+                         VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp,conddSamp,alphaSamp,
                          Xst,Yst,
                          ls,ld,mu,
                          rhog,cs,S,nstation):

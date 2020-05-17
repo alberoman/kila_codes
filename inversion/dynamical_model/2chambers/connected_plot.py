@@ -25,7 +25,7 @@ discardval = 1
 thinval = 1
 
 path_results = '../../../../results/conn/gpsscale/'
-pathrun = 'testnew'
+pathrun = 'testpez'
 model_type = 'LF'
 
 stations  = ['UWD','SDH','IKI']
