@@ -24,11 +24,11 @@ from shutil import copyfile
 discardval = 1
 thinval = 1
 
-path_results = '../../../../results/conn/'
-pathrun = 'sigma'
+path_results = '../../../../results/conn/gpsscale/'
+pathrun = 'testnew'
 model_type = 'LF'
 
-stations  = ['SDH','IKI']
+stations  = ['UWD','SDH','IKI']
 date = '07-03-2018'
 flaglocation = 'N'      # This is the flag for locations priors, F for Uniform, N for Normal
 

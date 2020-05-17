@@ -22,7 +22,7 @@ path_results = '../../../../results/conn/gpsscale/'
 
     
 
-pathrun = 'test'
+pathrun = 'testnew'
 
 model_type = 'LF'
 
