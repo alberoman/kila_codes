@@ -18,11 +18,11 @@ from multiprocessing import Pool
 import os
 import sys
 np.random.seed(1234567284)
-path_results = '../../../../results/conn/'
+path_results = '../../../../results/conn/gpsscale/'
 
     
 
-pathrun = 'acceptance'
+pathrun = 'test'
 
 model_type = 'LF'
 

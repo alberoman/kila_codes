@@ -395,12 +395,13 @@ def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
         conditions.append(-bndp0 < deltap0Samp < bndp0)
         if all(conditions):
-            logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]**2))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
-            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]**2))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
-            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[2]**2))-0.5*(dsSamp-locTr[2])**2/locEr[2]**2
-            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[3]**2))-0.5*(xdSamp-locTr[3])**2/locEr[3]**2
-            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[4]**2))-0.5*(ydSamp-locTr[4])**2/locEr[4]**2
-            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[5]**2))-0.5*(ddSamp-locTr[5])**2/locEr[5]**2
+            logprob =  -0.5 * np.log(6.28*locEr[0]**2)- 0.5*(xsSamp-locTr[0])**2/locEr[0]**2
+            logprob = logprob -0.5* np.log(6.28*locEr[1]**2)- 0.5*(ysSamp-locTr[1])**2/locEr[1]**2
+            logprob = logprob -0.5* np.log(6.28*locEr[2]**2) - 0.5*(dsSamp-locTr[2])**2/locEr[2]**2
+            logprob = logprob -0.5 * np.log(6.28*locEr[3]**2)- 0.5*(xdSamp-locTr[3])**2/locEr[3]**2
+            logprob = logprob -0.5* np.log(6.28*locEr[4]**2)- 0.5*(ydSamp-locTr[4])**2/locEr[4]**2
+            logprob = logprob -0.5* np.log(6.28*locEr[5]**2) - 0.5*(ddSamp-locTr[5])**2/locEr[5]**2  
+            
             return logprob
         return -np.inf
     elif flaglocation == 'F': #flat uniform priors
@@ -455,12 +456,12 @@ def log_prior_LF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
         conditions.append(-bndp0 < deltap0Samp < bndp0)
         if all(conditions):
-            logprob =   np.log(1.0/(np.sqrt(6.28)*locEr[0]**2))-0.5*(xsSamp-locTr[0])**2/locEr[0]**2
-            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[1]**2))-0.5*(ysSamp-locTr[1])**2/locEr[1]**2
-            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[2]**2))-0.5*(dsSamp-locTr[2])**2/locEr[2]**2
-            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[3]**2))-0.5*(xdSamp-locTr[3])**2/locEr[3]**2
-            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[4]**2))-0.5*(ydSamp-locTr[4])**2/locEr[4]**2
-            logprob = logprob +  np.log(1.0/(np.sqrt(6.28)*locEr[5]**2))-0.5*(ddSamp-locTr[5])**2/locEr[5]**2
+            logprob =  -0.5 * np.log(6.28*locEr[0]**2)- 0.5*(xsSamp-locTr[0])**2/locEr[0]**2
+            logprob = logprob -0.5* np.log(6.28*locEr[1]**2)- 0.5*(ysSamp-locTr[1])**2/locEr[1]**2
+            logprob = logprob -0.5* np.log(6.28*locEr[2]**2) - 0.5*(dsSamp-locTr[2])**2/locEr[2]**2
+            logprob = logprob -0.5 * np.log(6.28*locEr[3]**2)- 0.5*(xdSamp-locTr[3])**2/locEr[3]**2
+            logprob = logprob -0.5* np.log(6.28*locEr[4]**2)- 0.5*(ydSamp-locTr[4])**2/locEr[4]**2
+            logprob = logprob -0.5* np.log(6.28*locEr[5]**2) - 0.5*(ddSamp-locTr[5])**2/locEr[5]**2  
             return logprob
         return -np.inf
     elif flaglocation == 'F': #flat uniform priors
