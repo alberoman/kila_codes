@@ -569,3 +569,38 @@ def walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltco
     nwalkers, ndim = pos.shape
     
     return pos,nwalkers,ndim
+
+def walkers_init_frompymc(trace,nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltconst,bndGPSconst,bndp0,Nst,mt,flaglocation):
+    pos = np.zeros((nwalkers,ndim)) 
+    ind = np.random.randint(trace['condd_mod'].shape[0],size = nwalkers)
+    if mt == 'LF':
+        pos[:,0] = np.log10(trace['Vs_mod'][ind])
+        pos[:,1] = np.log10(trace['Vd_mod'][ind])
+        pos[:,2] = np.log10(trace['kd_mod'][ind])
+        pos[:,3] = trace['pspd_mod'][ind]
+        pos[:,4] = trace['ratio'][ind]
+        pos[:,5] = trace['conds_mod'][ind]
+        pos[:,6] = trace['condd_mod'][ind]
+    locs = np.zeros((nwalkers,6))
+    for i in range(len(locTruth)):
+        if flaglocation == 'N': # normal priors
+            locs[:,i] = np.random.normal(loc = locTruth[i], scale =locErr[i],size = nwalkers)
+        elif flaglocation == 'F': #flat uniform priors:
+            locs[:,i] = np.random.uniform(low = boundsLoc[i][0] , high = boundsLoc[i][1], size = nwalkers)
+    pos = np.concatenate((locs,pos),axis = 1)
+    
+    offtilt = np.zeros((nwalkers, Nst * 2))
+    for i in range(Nst * 2):
+        offtilt[:,i] = np.random.uniform(low = -bndtiltconst, high = bndtiltconst, size =nwalkers)
+    pos = np.concatenate((offtilt,pos),axis = 1)
+    
+    offsGPS = np.random.uniform(low = -bndGPSconst , high = 0,size = (nwalkers,1))
+    pos = np.concatenate((offsGPS,pos),axis = 1 )
+    if mt == 'UF':
+        initialp = np.random.uniform(low = -bndp0 , high = bndp0,size = (nwalkers,1))
+    elif mt == 'LF':
+        initialp = np.random.uniform(low = - bndp0 , high = bndp0,size = (nwalkers,1))
+
+    pos = np.concatenate((initialp,pos),axis = 1)
+    nwalkers, ndim = pos.shape
+    return pos,nwalkers,ndim
