@@ -452,6 +452,7 @@ def log_prior_LF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
         conditions.append(bounds[5,0] * 4 * alphaSamp * R1Samp / (1 + R1Samp) < R3Samp < bounds[5,1] * 4 * alphaSamp * R1Samp / (1 + R1Samp))
         conditions.append(bounds[6,0] < condsSamp < bounds[6,1])
         conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
+        conditions.append(bounds[8,0] < alphaSamp < bounds[8,1])
         conditions.append(all(np.abs(offs)<bndtiltconst))
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
         conditions.append(-bndp0 < deltap0Samp < bndp0)
