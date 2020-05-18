@@ -33,7 +33,7 @@ discardval = 1
 thinval = 1
 
 path_results = '../../../../results/conn/freesigma/'
-pathrun = 'test'
+pathrun = 'freegps'
 model_type = 'LF'
 
 stations  = ['UWD','SDH','IKI']
@@ -95,15 +95,15 @@ nwalkers,ndim = reader.shape
 samples = reader.get_chain(flat = True,discard = discardval)
 parmax = samples[np.argmax(reader.get_log_prob(flat = True,discard = discardval))]
 if Nst == 1:
-    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmatilt,sitmaGPS = parmax
+    deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sitmaGPS = parmax
     offxSamp = np.array([offx1])
     offySamp = np.array([offy1])
 elif Nst == 2:
-    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmatilt,sitmaGPS = parmax
+    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sitmaGPS = parmax
     offxSamp = np.array([offx1,offx2])
     offySamp = np.array([offy1,offy2])
 elif Nst == 3:
-    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmatilt,sitmaGPS = parmax
+    deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sitmaGPS = parmax
     offxSamp = np.array([offx1,offx2,offx3])
     offySamp = np.array([offy1,offy2,offy3])    
 if model_type == 'UF':
@@ -127,15 +127,15 @@ counter = 0
 samples = reader.get_chain(thin = thinval,discard = discardval,flat = True)
 for parameters in samples[np.random.randint(len(samples), size = 90)]:
     if Nst == 1:
-        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmatilt,sitmaGPS = parameters
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sitmaGPS = parameters
         offxSamp = np.array([offx1])
         offySamp = np.array([offy1])
     elif Nst == 2:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmatilt,sitmaGPS = parameters
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sitmaGPS = parameters
         offxSamp = np.array([offx1,offx2])
         offySamp = np.array([offy1,offy2])
     elif Nst == 3:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,FdsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp, alphaSamp,sigmatilt,sitmaGPS = parameters
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,FdsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,R5ExpSamp,R3Samp,condsSamp, conddSamp, alphaSamp,sitmaGPS = parameters
         offxSamp = np.array([offx1,offx2,offx3])
         offySamp = np.array([offy1,offy2,offy3])    
     if model_type == 'UF':

@@ -303,15 +303,15 @@ def log_likelihood_UF(param,
                    tTilt,tGPS,txObs,tyObs,GPSObs,
                    tiltErr,GPSErr,nstation):
     if np.max(nstation) ==  0:
-        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,sigmatiltSamp,sigmaGPSSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,sigmaGPSSamp = param
         offxSamp = np.array([offx1])
         offySamp = np.array([offy1])
     if np.max(nstation) ==  1:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,sigmatiltSamp,sigmaGPSSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,sigmaGPSSamp = param
         offxSamp = np.array([offx1,offx2])
         offySamp = np.array([offy1,offy2])
     if np.max(nstation) == 2:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,sigmatiltSamp,sigmaGPSSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,sigmaGPSSamp = param
         offxSamp = np.array([offx1,offx2,offx3])
         offySamp = np.array([offy1,offy2,offy3])
         
@@ -321,7 +321,7 @@ def log_likelihood_UF(param,
                                               xstation,ystation,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
-    sigma2Tilt = sigmatiltSamp ** 2
+    sigma2Tilt = tiltErr ** 2
     sigma2GPS = sigmaGPSSamp ** 2
     liketx = -0.5 * np.sum((txObs - txMod) ** 2 / sigma2Tilt,0)  -len(txObs)/ 2 * np.log(6.28 * sigma2Tilt**2)  
     likety = -0.5 * np.sum((tyObs - tyMod) ** 2 / sigma2Tilt,0)  -len(tyObs)/ 2 * np.log(6.28 * sigma2Tilt**2)
@@ -337,15 +337,15 @@ def log_likelihood_LF(param,
                    tTilt,tGPS,txObs,tyObs,GPSObs,
                    tiltErr,GPSErr,nstation):
     if np.max(nstation) ==  0:
-        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmatiltSamp,sigmaGPSSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmaGPSSamp = param
         offxSamp = np.array([offx1])
         offySamp = np.array([offy1])
     if np.max(nstation) ==  1:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmatiltSamp,sigmaGPSSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmaGPSSamp = param
         offxSamp = np.array([offx1,offx2])
         offySamp = np.array([offy1,offy2])
     if np.max(nstation) == 2:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmatiltSamp,sigmaGPSSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmaGPSSamp = param
         offxSamp = np.array([offx1,offx2,offx3])
         offySamp = np.array([offy1,offy2,offy3])
         
@@ -355,7 +355,7 @@ def log_likelihood_LF(param,
                                               xstation,ystation,
                                               ls,ld,mu,
                                               rhog,const,S,nstation)
-    sigma2Tilt = (10**sigmatiltSamp) ** 2
+    sigma2Tilt = tiltErr ** 2
     sigma2GPS = (10**sigmaGPSSamp) ** 2
     liketx = -0.5 * np.sum((txObs - txMod) ** 2 / sigma2Tilt,0)  -len(txObs)/ 2 * np.log(6.28 * sigma2Tilt)  
     likety = -0.5 * np.sum((tyObs - tyMod) ** 2 / sigma2Tilt,0)  -len(tyObs)/ 2 * np.log(6.28 * sigma2Tilt)
@@ -392,8 +392,7 @@ def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
         conditions.append(bounds[6,0] < condsSamp < bounds[6,1])
         conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
         conditions.append(bounds[8,0] < alphaSamp < bounds[8,1])
-        conditions.append(bounds[9,0] < sigmatiltSamp < bounds[9,1])
-        conditions.append(bounds[10,0] < sigmaGPSSamp < bounds[10,1])
+        conditions.append(bounds[9,0] < sigmaGPSSamp < bounds[9,1])
         conditions.append(all(np.abs(offs)<bndtiltconst))
         conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
         conditions.append(-bndp0 < deltap0Samp < bndp0)
@@ -418,7 +417,7 @@ def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
         conditions.append(bounds[6,0] < condsSamp < bounds[6,1])
         conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
         conditions.append(all(np.abs(offs)<bndtiltconst))
-        conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
+        conditions.append(-bndGPSconst < offGPSSamp < 0)
         conditions.append(-bndp0 < deltap0Samp < bndp0 )
         conditions.append(boundsLoc[0][0]< xsSamp < boundsLoc[0][1])
         conditions.append(boundsLoc[1][0]< ysSamp < boundsLoc[1][1])
@@ -432,13 +431,13 @@ def log_prior_UF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
 
 def log_prior_LF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,locTr,locEr,nstation,flaglocation):
     if np.max(nstation) ==  0:
-        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmatiltSamp,sigmaGPSSamp = param
+        deltap0Samp,offGPSSamp,offx1,offy1,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmaGPSSamp = param
         offs = np.array([offx1,offy1,])
     if np.max(nstation) ==  1:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmatiltSamp,sigmaGPSSamp  = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmaGPSSamp  = param
         offs = np.array([offx1,offy1,offx2,offy2])
     if np.max(nstation) == 2:
-        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmatiltSamp,sigmaGPSSamp  = param
+        deltap0Samp,offGPSSamp,offx1,offy1,offx2,offy2,offx3,offy3,xsSamp,ysSamp,dsSamp,xdSamp,ydSamp,ddSamp,VsExpSamp,VdExpSamp,ksExpSamp,kdExpSamp,pspdSamp,R3Samp,condsSamp, conddSamp,alphaSamp,sigmaGPSSamp  = param
         offs = np.array([offx1,offy1,offx2,offy2,offx3,offy3])
     ksSamp = 10**ksExpSamp
     kdSamp = 10**kdExpSamp
@@ -455,13 +454,11 @@ def log_prior_LF(param,S,rhog,bounds,boundsLoc,bndGPSconst,bndtiltconst,bndp0,lo
         conditions.append(bounds[5,0] * 4 * alphaSamp * R1Samp / (1 + R1Samp) < R3Samp < bounds[5,1] * 4 * alphaSamp * R1Samp / (1 + R1Samp))
         conditions.append(bounds[6,0] < condsSamp < bounds[6,1])
         conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
-        conditions.append(bounds[7,0] < conddSamp < bounds[7,1])
         conditions.append(bounds[8,0] < alphaSamp < bounds[8,1])
-        conditions.append(bounds[9,0] < sigmatiltSamp < bounds[9,1])
-        conditions.append(bounds[10,0] < sigmaGPSSamp < bounds[10,1])
+        conditions.append(bounds[9,0] < sigmaGPSSamp < bounds[9,1])
         conditions.append(all(np.abs(offs)<bndtiltconst))
-        conditions.append(-bndGPSconst < offGPSSamp < bndGPSconst)
-        conditions.append(-bndp0 < deltap0Samp < bndp0)
+        conditions.append(-bndGPSconst < offGPSSamp <0)
+        conditions.append(-bndp0 < deltap0Samp < 0)
         if all(conditions):
             logprob =  -0.5 * np.log(6.28*locEr[0]**2)- 0.5*(xsSamp-locTr[0])**2/locEr[0]**2
             logprob = logprob -0.5* np.log(6.28*locEr[1]**2)- 0.5*(ysSamp-locTr[1])**2/locEr[1]**2
@@ -538,8 +535,8 @@ def walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltco
         R1Initial = rhog * 10**pos[:,0] /(10**pos[:,2] * S)
     elif mt == 'LF':
         R1Initial = rhog * 10**pos[:,1] /(10**pos[:,3] * S)
-    lower =  rhog * (1 + R1Initial) * bounds[4,0] / (4 * pos[:,-3] * R1Initial)
-    upper =  rhog * (1 + R1Initial) * bounds[4,1] / (4 * pos[:,-3] * R1Initial)
+    lower =  rhog * (1 + R1Initial) * bounds[4,0] / (4 * pos[:,-2] * R1Initial)
+    upper =  rhog * (1 + R1Initial) * bounds[4,1] / (4 * pos[:,-2] * R1Initial)
     pos[:,4] = np.random.uniform(low = lower,high = upper, size = nwalkers * 10)
     ind = pos[:,4] < 3e+7
     R1Initial = R1Initial[ind]
@@ -548,8 +545,8 @@ def walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltco
     ind = ind.astype(int)
     pos = pos[ind,:]
     R1Initial = R1Initial[ind]
-    lower = bounds[5,0] * 4 * pos[:,-3] * R1Initial / (1 + R1Initial)
-    upper = bounds[5,1] * 4 * pos[:,-3] * R1Initial / (1 + R1Initial)
+    lower = bounds[5,0] * 4 * pos[:,-2] * R1Initial / (1 + R1Initial)
+    upper = bounds[5,1] * 4 * pos[:,-2] * R1Initial / (1 + R1Initial)
     pos[:,5] = np.random.uniform(low = lower,high = upper, size = nwalkers)
     
     locs = np.zeros((nwalkers,6))
@@ -570,7 +567,7 @@ def walkers_init(nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,locErr,bndtiltco
     if mt == 'UF':
         initialp = np.random.uniform(low = -bndp0 , high = bndp0,size = (nwalkers,1))
     elif mt == 'LF':
-        initialp = np.random.uniform(low = - bndp0 , high = bndp0,size = (nwalkers,1))
+        initialp = np.random.uniform(low = - bndp0 , high = 0,size = (nwalkers,1))
 
     pos = np.concatenate((initialp,pos),axis = 1)
     nwalkers, ndim = pos.shape
@@ -606,7 +603,7 @@ def walkers_init_frompymc(trace,nwalkers,ndim,bounds,boundsLoc,rhog,S,locTruth,l
     if mt == 'UF':
         initialp = np.random.uniform(low = -bndp0 , high = bndp0,size = (nwalkers,1))
     elif mt == 'LF':
-        initialp = np.random.uniform(low = - bndp0 , high = bndp0,size = (nwalkers,1))
+        initialp = np.random.uniform(low = - bndp0 , high = 0,size = (nwalkers,1))
 
     pos = np.concatenate((initialp,pos),axis = 1)
     nwalkers, ndim = pos.shape
