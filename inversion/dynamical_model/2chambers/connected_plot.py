@@ -25,10 +25,10 @@ discardval = 1
 thinval = 1
 
 path_results = '../../../../results/conn/gpsscale/'
-pathrun = 'gpsErr5e-2'
+pathrun = 'gpsErr1e-2'
 model_type = 'LF'
 
-stations  = ['UWD']
+stations  = ['SDH']
 date = '07-03-2018'
 flaglocation = 'N'      # This is the flag for locations priors, F for Uniform, N for Normal
 

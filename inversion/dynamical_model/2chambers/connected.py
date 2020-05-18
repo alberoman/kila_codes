@@ -22,11 +22,11 @@ path_results = '../../../../results/conn/gpsscale/'
 
     
 
-pathrun = 'gpserr01'
+pathrun = 'test'
 
 model_type = 'LF'
 
-stations  = ['UWD','SDH','IKI']
+stations  = ['UWD']
 date = '07-03-2018'
 flaglocation = 'N'      # This is the flag for locations priors, F for Uniform, N for Normal
 
@@ -52,7 +52,7 @@ def parameters_init(mt):
     GPSErr = 0.1
     locErrFact = 5
     
-    a_parameter = 5
+    a_parameter = 2
     thin = 10
     nwalkers = 64
 
